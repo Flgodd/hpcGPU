@@ -6,7 +6,6 @@
 #SBATCH --gres=gpu:1
 #SBATCH --partition gpu
 #SBATCH --account COMS031424
-#SBATCH --reservation=COMS031424GPU
 #SBATCH --output d2q9-bgk.out
 #SBATCH --exclusive
 
