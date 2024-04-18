@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#SBATCH --job-name d2q9-bgk
-#SBATCH --nodes 1
-#SBATCH --time 00:30:00
+#SBATCH --job-name=d2q9-bgk
+#SBATCH --nodes=1
+#SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
 #SBATCH --partition gpu
-#SBATCH --account COMS031424
-#SBATCH --output d2q9-bgk.out
+#SBATCH --account=COMS30052
+#SBATCH --output=lbm.out
 #SBATCH --exclusive
 
 
