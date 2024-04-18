@@ -5,7 +5,7 @@
 #SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
 #SBATCH --partition gpu
-#SBATCH --account=COMS30052
+#SBATCH --account=COMS031424
 #SBATCH --output=lbm.out
 #SBATCH --exclusive
 
