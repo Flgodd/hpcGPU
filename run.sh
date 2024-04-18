@@ -3,7 +3,7 @@
 #SBATCH --job-name=d2q9-bgk
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
-#SBATCH --partition gpu
+#SBATCH --partition=teach_gpu
 #SBATCH --account=COMS031424
 #SBATCH --output=lbm.out
 #SBATCH --time=00:30:00
