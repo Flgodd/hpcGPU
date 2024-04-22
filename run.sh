@@ -6,7 +6,7 @@
 #SBATCH --account=COMS031424
 #SBATCH --output=lbm.out
 #SBATCH --time=00:30:00
-#SBATCH --exclusive
+#SBATCH --nodes=1
 
 
 echo Running on host `hostname`
