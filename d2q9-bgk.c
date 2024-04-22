@@ -640,7 +640,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   fclose(fp);
 
   /*
-  ** allocate space to hold a record of the avarage velocities computed
+  ** allocate space to hold a record of the average velocities computed
   ** at each timestep
   */
   *av_vels_ptr = (float*)malloc(sizeof(float) * params->maxIters);
