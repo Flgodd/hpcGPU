@@ -1,19 +1,12 @@
 
 #define NSPEEDS         9
-//#define C_SQ		(1.0 / 3.0) /* square of speed of sound */
-//#define W0			(4.0 / 9.0)  /* weighting factor */
-//#define W1			(W0 / 4)
-//#define W2			(W1 / 4)
-//#define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
-//#define C_SQ_R_2	(3.0 / 2.0)
+
 #define C_SQ		(1.0 / 3.0) /* square of speed of sound */
 #define W0			(4.0 / 9.0)  /* weighting factor */
 #define W1			(W0 / 4)
 #define W2			(W1 / 4)
 #define IN_C_SQ	    1/C_SQ
 #define A	        1.f/(2.f * C_SQ * C_SQ)
-#define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
-#define C_SQ_R_2	(3.0 / 2.0)
 
 
 typedef struct
@@ -51,7 +44,7 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
 
 kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-    float local_tot_u[64*2];
+    local float local_tot_u[64*2];
 
     int ii = get_global_id(0);
     int jj = get_global_id(1);
