@@ -211,7 +211,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 }*/
 
-kernel void propagate(global float* cells, global float* tmp_cells, global short* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
+kernel void propagate(global float* cells, global float* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel)
 {
     local float scratch[64*2];
 
@@ -352,7 +352,7 @@ kernel void propagate(global float* cells, global float* tmp_cells, global short
     }
     if(local_index == 0){
         //printf("%f\n", tot_u);
-        tot_vel[tt*(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0)] = scratch[0];
     }
 
 
