@@ -30,11 +30,11 @@
 ** Grid indicies are:
 **
 **          ny
-**          ^       cols(jj)
+**          ^       cols(ii)
 **          |  ----- ----- -----
 **          | | ... | ... | etc |
 **          |  ----- ----- -----
-** rows(ii) | | 1,0 | 1,1 | 1,2 |
+** rows(jj) | | 1,0 | 1,1 | 1,2 |
 **          |  ----- ----- -----
 **          | | 0,0 | 0,1 | 0,2 |
 **          |  ----- ----- -----
@@ -43,7 +43,7 @@
 ** Note the names of the input parameter and obstacle files
 ** are passed on the command line, e.g.:
 **
-**   d2q9-bgk.exe input.params obstacles.dat
+**   ./d2q9-bgk input.params obstacles.dat
 **
 ** Be sure to adjust the grid dimensions in the parameter file
 ** if you choose a different obstacle file.
@@ -156,7 +156,7 @@ cl_device_id selectOpenCLDevice();
 float* total_vel = NULL;
 //int total_obstacles = 0;
 float gl_obs_u;
-//char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
+char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
 /*
 ** main program:
 ** initialise, timestep loop, finalise
@@ -531,7 +531,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   float w1 = params->density      / 9.0;
   float w2 = params->density      / 36.0;
 
-  total_cells = params->ny * params->nx;
+  //total_cells = params->ny * params->nx;
   for (int jj = 0; jj < params->ny; jj++)
   {
     for (int ii = 0; ii < params->nx; ii++)
@@ -583,10 +583,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     /* assign to array */
     (*obstacles_ptr)[yy * params->nx + xx] = blocked;
-	if (blocked) {
-		total_cells--;
-		total_obstacles++;
-	}
+
   }
     int temp = 0;
     for (int jj = 0; jj < params->ny; jj++)
