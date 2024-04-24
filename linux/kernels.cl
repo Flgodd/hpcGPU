@@ -14,7 +14,7 @@
 #define A	        1.f/(2.f * C_SQ * C_SQ)
 #define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
 #define C_SQ_R_2	(3.0 / 2.0)
-#define INDEX(ii,jj,nx,ny,speed) (((nx)*(ny)*(speed))+ ((ii)*(nx)+(jj)))
+
 #ifndef BLOCK_I
 	#define BLOCK_I 16
 #endif
@@ -211,7 +211,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	}
 	if(local_index == 0){
         //printf("%f\n", tot_u);
-		tot_vel[tt*(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+		tot_vel[(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
 	}
 
 		

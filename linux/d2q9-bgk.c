@@ -162,6 +162,7 @@ cl_device_id selectOpenCLDevice();
 int total_cells;
 float* total_vel = NULL;
 int total_obstacles = 0;
+float gl_obs_u;
 char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
 /*
 ** main program:
@@ -227,6 +228,11 @@ int main(int argc, char* argv[])
 	{
 		timestep(params, cells, tmp_cells, obstacles, ocl, flip, tt);
 		//av_vels[tt] = av_velocity(params, cells, obstacles, ocl);
+        float tv = 0;
+        for (int i = 0; i < ocl.workGroups; i++) {
+            tv += total_vel[i];
+        }
+        av_vels[tt] = tv/gl_obs_u;
 		flip = !flip;
         cl_mem temp = ocl.cells;
         ocl.cells = ocl.tmp_cells;
@@ -553,6 +559,15 @@ int initialise(const char* paramfile, const char* obstaclefile,
 		total_obstacles++;
 	}
   }
+    int temp = 0;
+    for (int jj = 0; jj < params->ny; jj++)
+    {
+        for (int ii = 0; ii < params->nx; ii++)
+        {
+            temp += (!(*obstacles_ptr)[ii + jj*params->nx] ? 1 : 0);
+        }
+    }
+    gl_obs_u = temp;
   /* and close the file */
   fclose(fp);
 
@@ -643,10 +658,10 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->total_vel = clCreateBuffer(
 	  ocl->context, CL_MEM_READ_WRITE,
-	  sizeof(cl_float)*(ocl->workGroups)*params->maxIters, NULL, &err);
+	  sizeof(cl_float)*(ocl->workGroups), NULL, &err);
   checkError(err, "creating vel buffer", __LINE__);
 
-  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups)*params->maxIters);
+  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
 
   return EXIT_SUCCESS;
 }
