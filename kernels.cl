@@ -352,7 +352,7 @@ kernel void propagate(global float* cells, global float* tmp_cells, global int* 
     }
     if(local_index == 0){
         //printf("%f\n", tot_u);
-        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0)] = scratch[0];
+        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
     }
 
 
