@@ -107,6 +107,7 @@ typedef struct
 } t_speed;
 
 float gl_obs_u;
+int flip;
 /*
 ** function prototypes
 */
@@ -201,7 +202,8 @@ int main(int argc, char* argv[])
   checkError(err, "writing obstacles data", __LINE__);
 
     //printf("%f\n", gl_obs_u);
-    printf("cells:%f\n", cells[0].speeds[0]);
+    //printf("cells:%f\n", cells[0].speeds[0]);
+    flip = 0;
   for (int tt = 0; tt < params.maxIters; tt++)
   {
 
@@ -261,9 +263,9 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   //rebound(params, cells, tmp_cells, obstacles, ocl);
   //collision(params, cells, tmp_cells, obstacles, ocl);
 
-  cl_mem temp = ocl.cells;
-  ocl.cells = ocl.tmp_cells;
-  ocl.tmp_cells = temp;
+//  cl_mem temp = ocl.cells;
+//  ocl.cells = ocl.tmp_cells;
+//  ocl.tmp_cells = temp;
 
   return t;
 }
@@ -273,8 +275,14 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
   cl_int err;
 
   // Set kernel arguments
-  err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
-  checkError(err, "setting accelerate_flow arg 0", __LINE__);
+  if(flip == 0) {
+      err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
+      checkError(err, "setting accelerate_flow arg 0", __LINE__);
+  }
+  if(flip == 1){
+      err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.tmp_cells);
+      checkError(err, "setting accelerate_flow arg 0", __LINE__);
+  }
   err = clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting accelerate_flow arg 1", __LINE__);
   err = clSetKernelArg(ocl.accelerate_flow, 2, sizeof(cl_int), &params.nx);
@@ -296,6 +304,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
   err = clFinish(ocl.queue);
   checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
+  flip = !flip;
   return EXIT_SUCCESS;
 }
 
@@ -304,9 +313,9 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   cl_int err;
 
   // Set kernel arguments
-  err = clSetKernelArg(ocl.propagate, 0, sizeof(cl_mem), &ocl.cells);
+  err = clSetKernelArg(ocl.propagate, flip, sizeof(cl_mem), &ocl.cells);
   checkError(err, "setting propagate arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate, 1, sizeof(cl_mem), &ocl.tmp_cells);
+  err = clSetKernelArg(ocl.propagate, !flip, sizeof(cl_mem), &ocl.tmp_cells);
   checkError(err, "setting propagate arg 1", __LINE__);
   err = clSetKernelArg(ocl.propagate, 2, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting propagate arg 2", __LINE__);
