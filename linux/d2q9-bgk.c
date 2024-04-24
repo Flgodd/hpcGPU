@@ -232,9 +232,9 @@ int main(int argc, char* argv[])
         for (int i = 0; i < ocl.workGroups; i++) {
             tv += total_vel[i];
         }
-        if(tt == 0)printf("host :%f\n", tv);
+        //if(tt == 0)printf("host :%f\n", tv);
         av_vels[tt] = tv/gl_obs_u;
-		flip = !flip;
+
         cl_mem temp = ocl.cells;
         ocl.cells = ocl.tmp_cells;
         ocl.tmp_cells = temp;
@@ -245,16 +245,12 @@ int main(int argc, char* argv[])
 		printf("tot density: %.12E\n", total_density(params, cells));
 #endif
 	}
-	if (!flip){
-		err = clEnqueueReadBuffer(
-		  ocl.queue, ocl.cells, CL_TRUE, 0,
-		  sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-	}
-	else {
-		err = clEnqueueReadBuffer(
-			ocl.queue, ocl.tmp_cells, CL_TRUE, 0,
-			sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-	}
+
+    err = clEnqueueReadBuffer(
+      ocl.queue, ocl.cells, CL_TRUE, 0,
+      sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+
+
 
   av_velocity(params, cells, obstacles, ocl, av_vels);
 
