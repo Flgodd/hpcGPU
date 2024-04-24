@@ -306,7 +306,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   checkError(err, "setting propagate arg 3", __LINE__);
   err = clSetKernelArg(ocl.propagate, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting propagate arg 4", __LINE__);
-  err = clSetKernelArg(ocl.propagate, 5, sizeof(cl_mem), &params.omega);
+  err = clSetKernelArg(ocl.propagate, 5, sizeof(cl_float), &params.omega);
   checkError(err, "setting propagate arg 5", __LINE__);
   err = clSetKernelArg(ocl.propagate, 6, sizeof(cl_mem), &tt_vel);
   checkError(err, "setting propagate arg 6", __LINE__);
