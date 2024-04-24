@@ -182,6 +182,8 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         //++*tot_cells;
     }
 
+    //__local float local_tot_u[LOCAL_SIZE];
+
     local_tot_u[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -193,12 +195,8 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     }
 
     // The first thread in each workgroup writes the local sum to the global memory
-    __global float* global_totals;
-
     if (local_index == 0) {
-        global_totals[get_group_id(0)] = local_tot_u[0];
+        tt_vels[get_group_id(0)] = local_tot_u[0];
     }
-
-    tt_vels = global_totals;
 
 }
