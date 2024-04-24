@@ -209,8 +209,8 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
-    /*if(local_index == 0){
-        tt_vels[(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
-    }*/
+    if(local_index == 0){
+        tt_vels[get_group_id(0)] = local_tot_u[0];
+    }
 
 }
