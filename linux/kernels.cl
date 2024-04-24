@@ -1,6 +1,11 @@
 
 #define NSPEEDS         9
-
+//#define C_SQ		(1.0 / 3.0) /* square of speed of sound */
+//#define W0			(4.0 / 9.0)  /* weighting factor */
+//#define W1			(W0 / 4)
+//#define W2			(W1 / 4)
+//#define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
+//#define C_SQ_R_2	(3.0 / 2.0)
 #define C_SQ		(1.0 / 3.0) /* square of speed of sound */
 #define W0			(4.0 / 9.0)  /* weighting factor */
 #define W1			(W0 / 4)
@@ -11,10 +16,10 @@
 #define C_SQ_R_2	(3.0 / 2.0)
 
 #ifndef BLOCK_I
-	#define BLOCK_I 16
+#define BLOCK_I 16
 #endif
 #ifndef BLOCK_J
-	#define BLOCK_J 16
+#define BLOCK_J 16
 #endif
 
 
@@ -23,11 +28,11 @@ typedef struct
     float speeds[NSPEEDS];
 } t_speed;
 kernel void accelerate_flow(global t_speed* cells,
-                            global int* obstacles,
-                            int nx, int ny,
-                            float density, float accel)
+global int* obstacles,
+int nx, int ny,
+float density, float accel)
 {
-  /* compute weighting factors */
+    /* compute weighting factors */
     float w1 = density * accel / 9.0;
     float w2 = density * accel / 36.0;
 
@@ -40,9 +45,9 @@ kernel void accelerate_flow(global t_speed* cells,
     /* if the cell is not occupied and
     ** we don't send a negative density */
     if (!obstacles[ii + jj* nx]
-        && (cells[ii + jj* nx].speeds[3] - w1) > 0.f
-        && (cells[ii + jj* nx].speeds[6] - w2) > 0.f
-        && (cells[ii + jj* nx].speeds[7] - w2) > 0.f)
+    && (cells[ii + jj* nx].speeds[3] - w1) > 0.f
+    && (cells[ii + jj* nx].speeds[6] - w2) > 0.f
+    && (cells[ii + jj* nx].speeds[7] - w2) > 0.f)
     {
     /* increase 'east-side' densities */
     cells[ii + jj* nx].speeds[1] += w1;
@@ -57,29 +62,27 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-    float local_tot_u[64*2];
+    local float scratch[64*2];
 
-	int ii = get_global_id(0);
-	int jj = get_global_id(1);
+    int ii = get_global_id(0);
+    int jj = get_global_id(1);
 
-	int ii_local = get_local_id(0);
-	int jj_local = get_local_id(1);
+    int jj_local = get_local_id(0);
+    int ii_local = get_local_id(1);
 
     int idx = ii + jj * nx;
-
-	int nx_local = get_local_size(0);
-	int ny_local = get_local_size(1);
-	int local_index = jj_local*nx_local + ii_local;
-	int local_size = nx_local * ny_local;
-
+    int nx_local = get_local_size(0);
+    int ny_local = get_local_size(1);
     float tot_u = 0;
+    int local_index = ii_local*nx_local + jj_local;
+    int local_size = nx_local * ny_local;
     int y_n = (jj + 1) % ny;
     int x_e = (ii + 1) % nx;
     int y_s = (jj == 0) ? (jj + ny - 1) : (jj - 1);
     int x_w = (ii == 0) ? (ii + nx - 1) : (ii - 1);
-	/* propagate densities to neighbouring cells, following
-	** appropriate directions of travel and writing into
-	** scratch space grid */
+    /* propagate densities to neighbouring cells, following
+    ** appropriate directions of travel and writing into
+    ** scratch space grid */
     //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0]);
     const float tmpC0 = cells[idx].speeds[0]; /* central cell, no movement */
     const float tmpC1 = cells[x_w + jj * nx].speeds[1]; /* east */
@@ -191,28 +194,22 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
     //++*tot_cells;
     }
 
-       
-	local_tot_u[local_index] = tot_u;
-	barrier(CLK_LOCAL_MEM_FENCE);
 
-	for(int offset = local_size/2; offset > 0; offset = offset / 2){
-		if(local_index < offset){
-			float other = local_tot_u[local_index + offset];
-			float mine = local_tot_u[local_index];
-			local_tot_u[local_index] = mine + other;
-		}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	}
-    /*for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
-        if (local_index < stride) {
-            local_tot_u[local_index] += local_tot_u[local_index + stride];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize at each step of the reduction
-    }*/
-	if(local_index == 0){
+    scratch[local_index] = tot_u;
+    barrier(CLK_LOCAL_MEM_FENCE);
 
-        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
+    for(int offset = local_size/2; offset > 0; offset = offset / 2){
+    if(local_index < offset){
+    float other = scratch[local_index + offset];
+    float mine = scratch[local_index];
+    scratch[local_index] = mine + other;
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if(local_index == 0){
+
+    tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
     }
 
-		
+
 }
