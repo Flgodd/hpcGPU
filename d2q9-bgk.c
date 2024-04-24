@@ -309,7 +309,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   err = clSetKernelArg(ocl.propagate, 5, sizeof(cl_mem), &params.omega);
   checkError(err, "setting propagate arg 5", __LINE__);
   err = clSetKernelArg(ocl.propagate, 6, sizeof(cl_mem), &tt_vel);
-  checkError(err, "setting propagate arg 5", __LINE__);
+  checkError(err, "setting propagate arg 6", __LINE__);
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.propagate,
