@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
         for (int i = 0; i < ocl.workGroups; i++) {
             tv += total_vel[i];
         }
-        if(tt == 0)printf("%f\n", tv);
+        if(tt == 0)printf("host :%f\n", tv);
         av_vels[tt] = tv/gl_obs_u;
 		flip = !flip;
         cl_mem temp = ocl.cells;
