@@ -78,14 +78,14 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
 
     float speeds[9];
     speeds[0] = cells[ii + jj*nx].speeds[0];
-    speeds[1] = cells[x_w + jj*params.nx].speeds[1];
-    speeds[3] = cells[x_e + jj*params.nx].speeds[3];
-    speeds[5] = cells[x_w + y_s*params.nx].speeds[5];
-    speeds[2] = cells[ii + y_s*params.nx].speeds[2];
-    speeds[6] = cells[x_e + y_s*params.nx].speeds[6];
-    speeds[8] = cells[x_w + y_n*params.nx].speeds[8];
-    speeds[4] = cells[ii + y_n*params.nx].speeds[4];
-    speeds[7] = cells[x_e + y_n*params.nx].speeds[7];
+    speeds[1] = cells[x_w + jj*nx].speeds[1];
+    speeds[3] = cells[x_e + jj*nx].speeds[3];
+    speeds[5] = cells[x_w + y_s*nx].speeds[5];
+    speeds[2] = cells[ii + y_s*nx].speeds[2];
+    speeds[6] = cells[x_e + y_s*nx].speeds[6];
+    speeds[8] = cells[x_w + y_n*nx].speeds[8];
+    speeds[4] = cells[ii + y_n*nx].speeds[4];
+    speeds[7] = cells[x_e + y_n*nx].speeds[7];
     int obstacle = !((int)obstacles[jj*nx + ii]);
     /* compute local density total */
     float local_density = 0.0;
@@ -191,7 +191,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     local_tot_u[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
     for(int i=0; i < 9 ; i++){
-        tmp_cells[INDEX(ii,jj,nx,ny,i)] = u[i];
+        tmp_cells[ii + jj*nx].speeds[i] = u[i];
     }
 
 #pragma unroll
