@@ -200,7 +200,8 @@ int main(int argc, char* argv[])
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
-    printf("%f\n", gl_obs_u);
+    //printf("%f\n", gl_obs_u);
+    printf("cells:%f\n", cells[0].speeds[0]);
   for (int tt = 0; tt < params.maxIters; tt++)
   {
 
@@ -235,7 +236,7 @@ int main(int argc, char* argv[])
 
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl, float *tt_vel)
 {
-  cl_int err;
+  //cl_int err;
 
   // Write cells to device
  /* err = clEnqueueWriteBuffer(

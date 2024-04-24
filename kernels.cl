@@ -72,7 +72,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     /* propagate densities from neighbouring cells, following
     ** appropriate directions of travel and writing into
     ** scratch space grid */
-
+    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
 
     const float tmpC0 = cells[idx].speeds[0]; /* central cell, no movement */
     const float tmpC1 = cells[x_w + jj * nx].speeds[1]; /* east */
@@ -103,7 +103,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
 //        if(local_index==0)printf("here");
         const float local_density = tmpC0 + tmpC1 + tmpC2 + tmpC3 + tmpC4
                                     + tmpC5 + tmpC6 + tmpC7 + tmpC8;
-        if(local_index==0)printf("%f\n",local_density);
+        //if(local_index==0)printf("%f\n",local_density);
         /* compute x velocity component */
         const float inv_localDensity = 1/local_density;
         const float u_x = (tmpC1
