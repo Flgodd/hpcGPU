@@ -214,6 +214,11 @@ int main(int argc, char* argv[])
 #endif
   }
 
+    err = clEnqueueReadBuffer(
+            ocl.queue, ocl.cells, CL_TRUE, 0,
+            sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+    checkError(err, "reading cells data", __LINE__);
+
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
   getrusage(RUSAGE_SELF, &ru);
