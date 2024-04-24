@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
   }
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, tt_vel);
-
+  tt_vel = (float*)malloc(sizeof(float)*(ocl.workGroups));
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -760,7 +760,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
             sizeof(cl_float)*(ocl->workGroups), NULL, &err);
     checkError(err, "creating vel buffer", __LINE__);
 
-    tt_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
+    //tt_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
 
   return EXIT_SUCCESS;
 }
