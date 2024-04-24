@@ -209,11 +209,16 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	if(local_index == 0){
         if(tt == 0){
             int temp = (get_group_id(0) + get_group_id(1)*get_num_groups(0));
-            printf("%d\n", temp);
+            //printf("%d\n", temp);
+            int t = 0;
+            for(int i = 0; i<128; i++){
+                t += scratch[i];
+                printf("%d\n", t);
+            }
         }
 
         tot_vel[tt*(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
-}
+    }
 
 		
 }
