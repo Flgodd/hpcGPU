@@ -11,6 +11,14 @@
 #define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
 #define C_SQ_R_2	(3.0 / 2.0)
 #define INDEX(ii,jj,nx,ny,speed) (((nx)*(ny)*(speed))+ ((ii)*(nx)+(jj)))
+
+#ifndef BLOCK_I
+#define BLOCK_I 16
+#endif
+#ifndef BLOCK_J
+#define BLOCK_J 16
+#endif
+
 typedef struct
 {
   float speeds[NSPEEDS];
@@ -211,12 +219,12 @@ kernel void accelerate_flow(global t_speed* cells,
 
 }*/
 
-kernel void propagate(global float* cells, global float* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel)
+kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel)
 {
     local float scratch[64*2];
 
-    int jj = get_global_id(0);
-    int ii = get_global_id(1);
+    int ii = get_global_id(0);
+    int jj = get_global_id(1);
 
     int jj_local = get_local_id(0);
     int ii_local = get_local_id(1);
@@ -238,18 +246,18 @@ kernel void propagate(global float* cells, global float* tmp_cells, global int* 
     /* propagate densities to neighbouring cells, following
     ** appropriate directions of travel and writing into
     ** scratch space grid */
-    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0]);
+    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
     float speeds[9];
-    speeds[0] = cells[INDEX(ii,jj,nx,ny,	0)];
-    speeds[1] = cells[INDEX(ii,x_w,nx,ny,	1)];
-    speeds[3] = cells[INDEX(ii,x_e,nx,ny,	3)];
-    speeds[5] = cells[INDEX(y_s,x_w,nx,ny,	5)];
-    speeds[2] = cells[INDEX(y_s,jj,nx,ny,	2)];
-    speeds[6] = cells[INDEX(y_s,x_e,nx,ny,	6)];
-    speeds[8] = cells[INDEX(y_n,x_w,nx,ny,	8)];
-    speeds[4] = cells[INDEX(y_n,jj,nx,ny,	4)];
-    speeds[7] = cells[INDEX(y_n,x_e,nx,ny,	7)];
-    int obstacle = !((int)obstacles[ii*nx + jj]);
+    speeds[0] = cells[ii + jj*nx].speeds[0];
+    speeds[1] = cells[x_w + jj*nx].speeds[1];
+    speeds[3] = cells[x_e + jj*nx].speeds[3];
+    speeds[5] = cells[x_w + y_s*nx].speeds[5];
+    speeds[2] = cells[ii + y_s*nx].speeds[2];
+    speeds[6] = cells[x_e + y_s*nx].speeds[6];
+    speeds[8] = cells[x_w + y_n*nx].speeds[8];
+    speeds[4] = cells[ii + y_n*nx].speeds[4];
+    speeds[7] = cells[x_e + y_n*nx].speeds[7];
+    int obstacle = !((int)obstacles[jj*nx + ii]);
     /* compute local density total */
     float local_density = 0.0;
 
@@ -340,7 +348,7 @@ kernel void propagate(global float* cells, global float* tmp_cells, global int* 
     barrier(CLK_LOCAL_MEM_FENCE);
 #pragma unroll
     for(int i=0; i < 9 ; i++){
-        tmp_cells[INDEX(ii,jj,nx,ny,i)] = u[i];
+        tmp_cells[ii + jj*nx].speeds[i] = u[i];
     }
     for(int offset = local_size/2; offset > 0; offset = offset / 2){
         if(local_index < offset){
