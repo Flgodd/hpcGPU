@@ -74,114 +74,100 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     ** scratch space grid */
     //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
 
-    const float tmpC0 = cells[idx].speeds[0]; /* central cell, no movement */
-    const float tmpC1 = cells[x_w + jj * nx].speeds[1]; /* east */
-    const float tmpC2 = cells[ii + y_s * nx].speeds[2]; /* north */
-    const float tmpC3 = cells[x_e + jj * nx].speeds[3]; /* west */
-    const float tmpC4 = cells[ii + y_n * nx].speeds[4]; /* south */
-    const float tmpC5 = cells[x_w + y_s * nx].speeds[5]; /* north-east */
-    const float tmpC6 = cells[x_e + y_s * nx].speeds[6]; /* north-west */
-    const float tmpC7 = cells[x_e + y_n * nx].speeds[7]; /* south-west */
-    const float tmpC8 = cells[x_w + y_n * nx].speeds[8]; /* south-east */
+    float speeds[9];
+    speeds[0] = cells[ii + jj*nx].speeds[0];
+    speeds[1] = cells[x_w + jj*params.nx].speeds[1];
+    speeds[3] = cells[x_e + jj*params.nx].speeds[3];
+    speeds[5] = cells[x_w + y_s*params.nx].speeds[5];
+    speeds[2] = cells[ii + y_s*params.nx].speeds[2];
+    speeds[6] = cells[x_e + y_s*params.nx].speeds[6];
+    speeds[8] = cells[x_w + y_n*params.nx].speeds[8];
+    speeds[4] = cells[ii + y_n*params.nx].speeds[4];
+    speeds[7] = cells[x_e + y_n*params.nx].speeds[7];
+    int obstacle = !((int)obstacles[jj*nx + ii]);
+    /* compute local density total */
+    float local_density = 0.0;
 
-    /* don't consider occupied cells */
-    if (obstacles[idx])
-    {
-
-        /* called after propagate, so taking values from scratch space
-        ** mirroring, and writing into main grid */
-        tmp_cells[idx].speeds[1] = tmpC3;
-        tmp_cells[idx].speeds[2] = tmpC4;
-        tmp_cells[idx].speeds[3] = tmpC1;
-        tmp_cells[idx].speeds[4] = tmpC2;
-        tmp_cells[idx].speeds[5] = tmpC7;
-        tmp_cells[idx].speeds[6] = tmpC8;
-        tmp_cells[idx].speeds[7] = tmpC5;
-        tmp_cells[idx].speeds[8] = tmpC6;
+    #pragma unroll
+    for (int i = 0; i < 9; i++) {
+        local_density += speeds[i];
     }
-    if (!obstacles[idx]){
-//        if(local_index==0)printf("here");
-        const float local_density = tmpC0 + tmpC1 + tmpC2 + tmpC3 + tmpC4
-                                    + tmpC5 + tmpC6 + tmpC7 + tmpC8;
-        //if(local_index==0)printf("%f\n",local_density);
-        /* compute x velocity component */
-        const float inv_localDensity = 1/local_density;
-        const float u_x = (tmpC1
-                           + tmpC5
-                           + tmpC8
-                           - (tmpC3
-                              + tmpC6
-                              + tmpC7))
-                          * inv_localDensity;
-        /* compute y velocity component */
-        const float u_y = (tmpC2
-                           + tmpC5
-                           + tmpC6
-                           - (tmpC4
-                              + tmpC7
-                              + tmpC8))
-                          * inv_localDensity;
 
-        /* velocity squared */
-        const float u_sq = u_x * u_x + u_y * u_y;
+    float a = speeds[8] - speeds[6];
+    float b = speeds[5] - speeds[7];
+    float c = speeds[1] - speeds[3];
+    float d = speeds[2] - speeds[4];
+    /* compute x velocity component */
+    float u_x = b;
+    float u_y = b;
+    u_x = u_x + a + c;
+    u_y = u_y + d - a;
 
-        const float t = -u_sq/(2.f * C_SQ);
-        //                const float a = 1.f/(2.f * c_sq * c_sq);
-        //                const float in_c_sq = 1/c_sq;
-        /* zero velocity density: weight w0 */
-        const float d_equ0 = W0 * local_density
-                             * (1.f +t);
-        /* axis speeds: weight w1 */
-        const float tempW = W1 * local_density;
+    u_x = native_divide(u_x,local_density);
+    u_y = native_divide(u_y, local_density);
+    float w_local = W0 * local_density;
+    /* velocity squared */
 
-        const float d_equ1 = tempW * (1.f + u_x * IN_C_SQ
-                                      + (u_x * u_x) * A
-                                      + t);
+    /* directional velocity components */
 
-        const float d_equ2 = tempW * (1.f + u_y * IN_C_SQ
-                                      + (u_y * u_y) * A
-                                      + t);
 
-        const float d_equ3 = tempW * (1.f - u_x *IN_C_SQ
-                                      + (u_x * u_x) * A
-                                      + (t));
+    //Compiler can you please vectorize this ty xoxo
 
-        const float d_equ4 = tempW * (1.f - u_y *IN_C_SQ
-                                      + (u_y * u_y) * A
-                                      + (t));
-        /* diagonal speeds: weight w2 */
-        const float tempW2 = W2 * local_density;
-        const float u_xy = u_x + u_y;
-        const float d_equ5 = tempW2 * (1.f + u_xy *IN_C_SQ
-                                       + (u_xy * u_xy) * A
-                                       + (t));
-        const float u__xy = -u_x + u_y;
-        const float d_equ6 = tempW2 * (1.f + u__xy *IN_C_SQ
-                                       + (u__xy * u__xy) * A
-                                       + (t));
-        const float u__x_y = -u_x - u_y;
-        const float d_equ7 = tempW2 * (1.f + u__x_y *IN_C_SQ
-                                       + (u__x_y * u__x_y) * A
-                                       + (t));
-        const float u_x_y = u_x - u_y;
-        const float d_equ8 = tempW2 * (1.f + u_x_y *IN_C_SQ
-                                       + (u_x_y * u_x_y) * A
-                                       + (t));
-        /* relaxation step */
+    //before: 9, now:
+    float u_x_y = u_x * u_y * 2.0 * C_SQ_2;
+    float u2[NSPEEDS];
+    u2[1] = u_x * u_x;
+    u2[2] = u_y * u_y;
+    float u_sq = (u2[1] + u2[2]);
+    float u_sq_recip = u_sq *C_SQ_R_2 - 1.0;
 
-        tmp_cells[idx].speeds[0] = tmpC0 + omega * (d_equ0 - tmpC0);
-        tmp_cells[idx].speeds[1] = tmpC1 + omega * (d_equ1- tmpC1);
-        tmp_cells[idx].speeds[2] = tmpC2 + omega * (d_equ2 - tmpC2);
-        tmp_cells[idx].speeds[3] = tmpC3 + omega * (d_equ3 - tmpC3);
-        tmp_cells[idx].speeds[4] = tmpC4 + omega * (d_equ4 - tmpC4);
-        tmp_cells[idx].speeds[5] = tmpC5 + omega * (d_equ5 - tmpC5);
-        tmp_cells[idx].speeds[6] = tmpC6 + omega * (d_equ6 - tmpC6);
-        tmp_cells[idx].speeds[7] = tmpC7 + omega * (d_equ7 - tmpC7);
-        tmp_cells[idx].speeds[8] = tmpC8 + omega * (d_equ8 - tmpC8);
-        if(local_index == 0)printf("%f\n", (u_x * u_x) + (u_y * u_y));
-        tot_u += native_sqrt((u_x * u_x) + (u_y * u_y));
-        /* increase counter of inspected cells */
-        //++*tot_cells;
+    u2[0] = 0;
+    u2[1] = u2[1] * C_SQ_2 - u_sq_recip;
+    u2[2] *= C_SQ_2;
+    u2[3] = u2[1];
+    u2[4] = u2[2] - u_sq_recip;
+    u2[5] = u2[1] + u2[2] + u_x_y;
+    u2[6] = u2[1] + u2[2] - u_x_y;
+    u2[7] = u2[5];
+    u2[8] = u2[6];
+    u2[2] -= u_sq_recip;
+    tot_u = native_sqrt(u_sq)*obstacle;
+    u_x  = native_divide(u_x, (float)C_SQ);
+    u_y = native_divide(u_y, (float)C_SQ);
+    float u[NSPEEDS];
+    u[0] = -u_sq_recip;
+    u[1] = u_x + u2[1];
+    u[2] = u_y + u2[2];
+    u[3] = -u_x + u2[3];
+    u[4] = -u_y + u2[4];
+    u[5] = u_x + u_y + u2[5];
+    u[6] = -u_x + u_y + u2[6];
+    u[7] = -u_x - u_y + u2[7];
+    u[8] = u_x - u_y + u2[8];
+
+    u[0] = w_local * (u[0]) - speeds[0];
+    u[0] = (speeds[0] + omega*u[0])*obstacle;
+    float w1_local = W1 * local_density;
+    #pragma unroll
+    for (int i = 1; i < 5; i++) {
+        float a = w1_local * (u[i]) - speeds[i];
+        u[i] = speeds[i] + omega*a;
+    }
+    float w2_local = W2 * local_density;
+    #pragma unroll
+    for (int i = 5; i < 9; i++) {
+        float a = w2_local * (u[i]) - speeds[i];
+        u[i] = speeds[i] + omega*a;
+    }
+    if(!obstacle){
+        u[1] = speeds[3];
+        u[2] = speeds[4];
+        u[3] = speeds[1];
+        u[4] = speeds[2];
+        u[5] = speeds[7];
+        u[6] = speeds[8];
+        u[7] = speeds[5];
+        u[8] = speeds[6];
     }
     //printf("%f\n", tot_u);
     //__local float local_tot_u[LOCAL_SIZE];
@@ -202,7 +188,11 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     }*/
     local_tot_u[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
-    #pragma unroll
+    for(int i=0; i < 9 ; i++){
+        tmp_cells[INDEX(ii,jj,nx,ny,i)] = u[i];
+    }
+
+#pragma unroll
     for(int offset = local_size/2; offset > 0; offset = offset / 2){
         if(local_index < offset){
             float other = local_tot_u[local_index + offset];
