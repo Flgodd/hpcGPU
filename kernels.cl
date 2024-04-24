@@ -51,7 +51,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     int ii = get_global_id(0);
     int jj = get_global_id(1);
 
-    __local float local_tot_u[128];
+    float local_tot_u[128];
 
     int jj_local = get_local_id(0);
     int ii_local = get_local_id(1);
@@ -182,7 +182,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         //++*tot_cells;
     }
 
-    /*local_tot_u[local_index] = tot_u;
+    local_tot_u[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
@@ -199,6 +199,6 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         global_totals[get_group_id(0)] = local_tot_u[0];
     }
 
-    tt_vels = global_totals;*/
+    tt_vels = global_totals;
 
 }
