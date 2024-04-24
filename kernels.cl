@@ -100,7 +100,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         tmp_cells[idx].speeds[8] = tmpC6;
     }
     if (!obstacles[idx]){
-        if(local_index==0)printf("here");
+//        if(local_index==0)printf("here");
         const float local_density = tmpC0 + tmpC1 + tmpC2 + tmpC3 + tmpC4
                                     + tmpC5 + tmpC6 + tmpC7 + tmpC8;
 
@@ -178,7 +178,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         tmp_cells[idx].speeds[6] = tmpC6 + omega * (d_equ6 - tmpC6);
         tmp_cells[idx].speeds[7] = tmpC7 + omega * (d_equ7 - tmpC7);
         tmp_cells[idx].speeds[8] = tmpC8 + omega * (d_equ8 - tmpC8);
-
+        if(local_index==0)printf("%f, %f\n",u_x, u_y );
         tot_u += native_sqrt((u_x * u_x) + (u_y * u_y));
         /* increase counter of inspected cells */
         //++*tot_cells;
