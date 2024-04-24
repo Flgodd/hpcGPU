@@ -65,10 +65,10 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     int idx = ii + jj * nx;
     /* determine indices of axis-direction neighbours
     ** respecting periodic boundary conditions (wrap around) */
-    int y_n = (jj + 1) % ny;
-    int x_e = (ii + 1) % nx;
-    int y_s = (jj == 0) ? (jj + ny - 1) : (jj - 1);
-    int x_w = (ii == 0) ? (ii + nx - 1) : (ii - 1);
+    int y_n = ((ii + 1) & (ny-1));
+    int y_s = ((ii == 0) ? (ii + ny - 1) : (ii - 1));
+    int x_e = ((jj + 1) & (nx-1));
+    int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
     float tot_u = 0.f;
     /* propagate densities from neighbouring cells, following
@@ -204,7 +204,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         barrier(CLK_LOCAL_MEM_FENCE);
     }
     if(local_index == 0){
-        printf("%f\n", local_tot_u[0]);
+        printf("%f\n", tot_u);
         tt_vels[get_group_id(0)] = local_tot_u[0];
     }
 
