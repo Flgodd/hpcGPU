@@ -42,7 +42,7 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
     }
 }
 
-kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
+kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
     local float local_tot_u[64*2];
 

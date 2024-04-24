@@ -100,7 +100,7 @@ typedef struct
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  propagate;
-  cl_kernel  collision;
+  cl_kernel  combineReCol;
   cl_kernel  rebound;
   cl_kernel  av_velocity;
 
@@ -214,15 +214,15 @@ int main(int argc, char* argv[])
     checkError(err, "writing obstacles data", __LINE__);
 
 
-    err = clSetKernelArg(ocl.collision, 2, sizeof(cl_mem), &ocl.obstacles);
+    err = clSetKernelArg(ocl.combineReCol, 2, sizeof(cl_mem), &ocl.obstacles);
     checkError(err, "setting collision arg 2", __LINE__);
-    err = clSetKernelArg(ocl.collision, 3, sizeof(cl_int), &params.nx);
+    err = clSetKernelArg(ocl.combineReCol, 3, sizeof(cl_int), &params.nx);
     checkError(err, "setting collision arg 3", __LINE__);
-    err = clSetKernelArg(ocl.collision, 4, sizeof(cl_int), &params.ny);
+    err = clSetKernelArg(ocl.combineReCol, 4, sizeof(cl_int), &params.ny);
     checkError(err, "setting collision arg 4", __LINE__);
-    err = clSetKernelArg(ocl.collision, 5, sizeof(cl_float), &params.omega);
+    err = clSetKernelArg(ocl.combineReCol, 5, sizeof(cl_float), &params.omega);
     checkError(err, "setting collision arg 5", __LINE__);
-    err = clSetKernelArg(ocl.collision, 6, sizeof(cl_mem), &ocl.total_vel);
+    err = clSetKernelArg(ocl.combineReCol, 6, sizeof(cl_mem), &ocl.total_vel);
     checkError(err, "setting collision arg 6", __LINE__);
     err = clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.obstacles);
     checkError(err, "setting accelerate_flow arg 1", __LINE__);
@@ -346,16 +346,16 @@ int combineReCol(const t_param params, int* obstacles, t_ocl ocl , int tt)
 	cl_int err;
 
 	// Set kernel arguments
-	err = clSetKernelArg(ocl.collision, 0, sizeof(cl_mem), &ocl.cells);
+	err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
 	checkError(err, "setting collision arg 0", __LINE__);
-	err = clSetKernelArg(ocl.collision, 1, sizeof(cl_mem), &ocl.tmp_cells);
+	err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
 	checkError(err, "setting collision arg 1", __LINE__);
-	err = clSetKernelArg(ocl.collision, 7, sizeof(cl_int), &tt);
+	err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
 	checkError(err, "setting collision arg 7", __LINE__);
 	// Enqueue kernel
 	size_t global[2] = { params.nx, params.ny };
 	size_t local[2] = { 64, 2 };
-	err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision,
+	err = clEnqueueNDRangeKernel(ocl.queue, ocl.combineReCol,
 		2, NULL, global, local, 0, NULL, NULL);
 
 	checkError(err, "enqueueing collision kernel", __LINE__);
@@ -672,7 +672,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   // Create OpenCL kernels
   ocl->accelerate_flow = clCreateKernel(ocl->program, "accelerate_flow", &err);
   checkError(err, "creating accelerate_flow kernel", __LINE__);
-  ocl->collision = clCreateKernel(ocl->program, "collision", &err);
+  ocl->combineReCol = clCreateKernel(ocl->program, "combineReCol", &err);
   checkError(err, "creating collision kernel", __LINE__);
 
   // Allocate OpenCL buffers
@@ -727,7 +727,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.cells);
   clReleaseMemObject(ocl.tmp_cells);
   clReleaseMemObject(ocl.obstacles);
-  clReleaseKernel(ocl.collision);
+  clReleaseKernel(ocl.combineReCol);
 
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
