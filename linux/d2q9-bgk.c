@@ -258,15 +258,15 @@ int main(int argc, char* argv[])
 #endif
 	}
 
-    err = clEnqueueReadBuffer(
-      ocl.queue, ocl.cells, CL_TRUE, 0,
-      sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-
-
-
-  av_velocity(params, cells, obstacles, ocl, av_vels);
-
-  checkError(err, "reading tmp_cells data", __LINE__);
+//    err = clEnqueueReadBuffer(
+//      ocl.queue, ocl.cells, CL_TRUE, 0,
+//      sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+//
+//
+//
+//  av_velocity(params, cells, obstacles, ocl, av_vels);
+//
+//  checkError(err, "reading tmp_cells data", __LINE__);
    
 
 #ifdef  __unix__
@@ -283,6 +283,15 @@ int main(int argc, char* argv[])
   float time = (float)(end - start) / CLOCKS_PER_SEC;
 #endif
   /* write final values and free memory */
+    err = clEnqueueReadBuffer(
+            ocl.queue, ocl.cells, CL_TRUE, 0,
+            sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+
+
+
+    av_velocity(params, cells, obstacles, ocl, av_vels);
+
+    checkError(err, "reading tmp_cells data", __LINE__);
   printf("==done==\n");
   printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles, ocl, av_vels[params.maxIters-1]));
 #ifdef __unix__
