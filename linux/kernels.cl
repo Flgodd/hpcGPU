@@ -15,45 +15,49 @@
 #endif
 
 
-
-kernel void accelerate_flow(global float* cells,
+typedef struct
+{
+    float speeds[NSPEEDS];
+} t_speed;
+kernel void accelerate_flow(global t_speed* cells,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
 {
   /* compute weighting factors */
-  float w1 = density * accel / 9.0;
-  float w2 = density * accel / 36.0;
+    float w1 = density * accel / 9.0;
+    float w2 = density * accel / 36.0;
 
-  /* modify the 2nd row of the grid */
-  int ii = ny - 2;
+    /* modify the 2nd row of the grid */
+    int jj = ny - 2;
 
-  /* get column index */
-  int jj = get_global_id(0);
+    /* get column index */
+    int ii = get_global_id(0);
 
-  /* if the cell is not occupied and
-  ** we don't send a negative density */
-  if (!obstacles[ii * nx + jj]
-      && (cells[INDEX(ii,jj,nx,ny,3)] - w1) > 0.0
-      && (cells[INDEX(ii,jj,nx,ny,6)] - w2) > 0.0
-      && (cells[INDEX(ii,jj,nx,ny,7)] - w2) > 0.0)
-  {
+    /* if the cell is not occupied and
+    ** we don't send a negative density */
+    if (!obstacles[ii + jj* nx]
+        && (cells[ii + jj* nx].speeds[3] - w1) > 0.f
+        && (cells[ii + jj* nx].speeds[6] - w2) > 0.f
+        && (cells[ii + jj* nx].speeds[7] - w2) > 0.f)
+    {
     /* increase 'east-side' densities */
-    cells[INDEX(ii,jj,nx,ny,1)] += w1;
-    cells[INDEX(ii,jj,nx,ny,5)] += w2;
-    cells[INDEX(ii,jj,nx,ny,8)] += w2;
-    cells[INDEX(ii,jj,nx,ny,3)] -= w1;
-    cells[INDEX(ii,jj,nx,ny,6)] -= w2;
-    cells[INDEX(ii,jj,nx,ny,7)] -= w2;
-  }
+    cells[ii + jj* nx].speeds[1] += w1;
+    cells[ii + jj* nx].speeds[5] += w2;
+    cells[ii + jj* nx].speeds[8] += w2;
+    /* decrease 'west-side' densities */
+    cells[ii + jj* nx].speeds[3] -= w1;
+    cells[ii + jj* nx].speeds[6] -= w2;
+    cells[ii + jj* nx].speeds[7] -= w2;
+    }
 }
 
-kernel void collision(global float* cells, global float* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
+kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
 	local float scratch[64*2];
 
-	int jj = get_global_id(0);
-	int ii = get_global_id(1);
+	int ii = get_global_id(0);
+	int jj = get_global_id(1);
 
 	int jj_local = get_local_id(0);
 	int ii_local = get_local_id(1);
@@ -63,30 +67,25 @@ kernel void collision(global float* cells, global float* tmp_cells, global int* 
 	float tot_u = 0;
 	int local_index = ii_local*nx_local + jj_local;
 	int local_size = nx_local * ny_local;
-	int y_n = ((ii + 1) & (ny-1));
-	int y_s = ((ii == 0) ? (ii + ny - 1) : (ii - 1));
-	//wait until flow acceleration has been computed
-
-	/*Propagate step*/
-	/* determine indices of axis-direction neighbours
-	** respecting periodic boundary conditions (wrap around) */
-	int x_e = ((jj + 1) & (nx-1));
-	int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
+    int y_n = (jj + 1) % ny;
+    int x_e = (ii + 1) % nx;
+    int y_s = (jj == 0) ? (jj + ny - 1) : (jj - 1);
+    int x_w = (ii == 0) ? (ii + nx - 1) : (ii - 1);
 	/* propagate densities to neighbouring cells, following
 	** appropriate directions of travel and writing into
 	** scratch space grid */
     //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0]);
 	float speeds[9];
-	speeds[0] = cells[INDEX(ii,jj,nx,ny,	0)];	
-	speeds[1] = cells[INDEX(ii,x_w,nx,ny,	1)];
-	speeds[3] = cells[INDEX(ii,x_e,nx,ny,	3)];
-	speeds[5] = cells[INDEX(y_s,x_w,nx,ny,	5)];
-	speeds[2] = cells[INDEX(y_s,jj,nx,ny,	2)];
-	speeds[6] = cells[INDEX(y_s,x_e,nx,ny,	6)];
-	speeds[8] = cells[INDEX(y_n,x_w,nx,ny,	8)];
-	speeds[4] = cells[INDEX(y_n,jj,nx,ny,	4)];
-	speeds[7] = cells[INDEX(y_n,x_e,nx,ny,	7)];
-	int obstacle = !((int)obstacles[ii*nx + jj]);
+    speeds[0] = cells[ii + jj*nx].speeds[0];
+    speeds[1] = cells[x_w + jj*nx].speeds[1];
+    speeds[3] = cells[x_e + jj*nx].speeds[3];
+    speeds[5] = cells[x_w + y_s*nx].speeds[5];
+    speeds[2] = cells[ii + y_s*nx].speeds[2];
+    speeds[6] = cells[x_e + y_s*nx].speeds[6];
+    speeds[8] = cells[x_w + y_n*nx].speeds[8];
+    speeds[4] = cells[ii + y_n*nx].speeds[4];
+    speeds[7] = cells[x_e + y_n*nx].speeds[7];
+	int obstacle = !((int)obstacles[jj*nx + ii]);
 	/* compute local density total */
 	float local_density = 0.0;
 
@@ -176,8 +175,8 @@ kernel void collision(global float* cells, global float* tmp_cells, global int* 
 	scratch[local_index] = tot_u;
 	barrier(CLK_LOCAL_MEM_FENCE);
 	#pragma unroll
-	for(int i=0; i < 9 ; i++){ 
-		tmp_cells[INDEX(ii,jj,nx,ny,i)] = u[i];
+	for(int i=0; i < 9 ; i++){
+        tmp_cells[ii + jj*nx].speeds[i] = u[i];
 	}
 	for(int offset = local_size/2; offset > 0; offset = offset / 2){
 		if(local_index < offset){
