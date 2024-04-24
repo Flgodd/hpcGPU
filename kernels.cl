@@ -205,7 +205,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         if(local_index < offset){
             float other = local_tot_u[local_index + offset];
             float mine =local_tot_u[local_index];
-local_tot_u[local_index] = mine + other;
+            local_tot_u[local_index] = mine + other;
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
