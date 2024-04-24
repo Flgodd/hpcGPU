@@ -10,12 +10,12 @@
 #define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
 #define C_SQ_R_2	(3.0 / 2.0)
 
-//#ifndef BLOCK_I
-//	#define BLOCK_I 16
-//#endif
-//#ifndef BLOCK_J
-//	#define BLOCK_J 16
-//#endif
+#ifndef BLOCK_I
+	#define BLOCK_I 16
+#endif
+#ifndef BLOCK_J
+	#define BLOCK_J 16
+#endif
 
 
 typedef struct
