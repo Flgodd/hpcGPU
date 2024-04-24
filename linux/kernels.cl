@@ -217,7 +217,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
             }
         }
 
-        tot_vel[tt*(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
     }
 
 		

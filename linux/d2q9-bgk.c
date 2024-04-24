@@ -353,8 +353,13 @@ int collision(const t_param params, int* obstacles, t_ocl ocl, int flip , int tt
 	checkError(err, "enqueueing collision kernel", __LINE__);
 
 	// Wait for kernel to finish
-	//err = clFinish(ocl.queue);
-	//checkError(err, "waiting for collision kernel", __LINE__);
+	err = clFinish(ocl.queue);
+	checkError(err, "waiting for collision kernel", __LINE__);
+
+    err = clEnqueueReadBuffer(
+            ocl.queue, ocl.total_vel, CL_TRUE, 0,
+            sizeof(cl_float)*(ocl.workGroups), total_vel, 0, NULL, NULL);
+    checkError(err, "reading total_vel data", __LINE__);
 
   return EXIT_SUCCESS;
 }
@@ -384,7 +389,7 @@ void set_kernel_args(const t_param params,t_ocl ocl) {
 
 }
 
-/*int av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float* av_vels)
+/*float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float* av_vels)
 {
 	cl_int err;
 
@@ -710,10 +715,10 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->total_vel = clCreateBuffer(
 	  ocl->context, CL_MEM_READ_WRITE,
-	  sizeof(cl_float)*(ocl->workGroups)*params->maxIters, NULL, &err);
+	  sizeof(cl_float)*(ocl->workGroups), NULL, &err);
   checkError(err, "creating vel buffer", __LINE__);
 
-  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups)*params->maxIters);
+  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
 
   return EXIT_SUCCESS;
 }
