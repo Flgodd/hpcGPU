@@ -74,7 +74,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     /* propagate densities from neighbouring cells, following
     ** appropriate directions of travel and writing into
     ** scratch space grid */
-    //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
+    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
 
     float speeds[9];
     speeds[0] = cells[ii + jj*nx].speeds[0];
@@ -204,7 +204,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         barrier(CLK_LOCAL_MEM_FENCE);
     }
     if(local_index == 0){
-        printf("%f\n", tot_u);
+        //printf("%f\n", tot_u);
         tt_vels[get_group_id(0)] = local_tot_u[0];
     }
 

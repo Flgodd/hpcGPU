@@ -188,7 +188,7 @@ kernel void collision(global float* cells, global float* tmp_cells, global short
 	barrier(CLK_LOCAL_MEM_FENCE);
 	}
 	if(local_index == 0){
-        printf("%f\n", tot_u);
+        //printf("%f\n", tot_u);
 		tot_vel[tt*(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
 	}
 
