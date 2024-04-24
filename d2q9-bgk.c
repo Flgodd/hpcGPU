@@ -209,6 +209,7 @@ int main(int argc, char* argv[])
 
     av_vels[tt] = timestep(params, cells, tmp_cells, obstacles, ocl, tt_vel);
     //printf("%f\n", av_vels[tt]);
+    flip = !flip;
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -304,7 +305,6 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
   err = clFinish(ocl.queue);
   checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
-  flip = !flip;
   return EXIT_SUCCESS;
 }
 
