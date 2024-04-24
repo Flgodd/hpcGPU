@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
   {
 
     av_vels[tt] = timestep(params, cells, tmp_cells, obstacles, ocl, tt_vel);
-    if(tt == 0)printf("%f\n", av_vels[tt]);
+    //printf("%f\n", av_vels[tt]);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -331,7 +331,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   for (int i = 0; i < ocl.workGroups; i++) {
       total_velocity += tt_vel[i];
   }
-
+  printf("%f\n", total_velocity);
   return total_velocity/gl_obs_u;
 }
 
