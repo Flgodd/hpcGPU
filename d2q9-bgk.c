@@ -320,7 +320,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
   checkError(err, "waiting for propagate kernel", __LINE__);
-
+    printf("here");
   err = clEnqueueReadBuffer(ocl.queue, ocl.tt_vels, CL_TRUE, 0,
                               sizeof(float) * ocl.workGroups, tt_vel, 0, NULL, NULL);
   checkError(err, "reading back results", __LINE__);
