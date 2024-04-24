@@ -15,13 +15,6 @@
 #define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
 #define C_SQ_R_2	(3.0 / 2.0)
 
-//#ifndef BLOCK_I
-//#define BLOCK_I 16
-//#endif
-//#ifndef BLOCK_J
-//#define BLOCK_J 16
-//#endif
-
 
 typedef struct
 {
@@ -58,7 +51,7 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
 
 kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-    local float scratch[64*2];
+    local float local_tot_u[64*2];
 
     int ii = get_global_id(0);
     int jj = get_global_id(1);
@@ -193,7 +186,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
     }
 
 
-    scratch[local_index] = tot_u;
+    /*scratch[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     for(int offset = local_size/2; offset > 0; offset = offset / 2){
@@ -203,10 +196,20 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
         scratch[local_index] = mine + other;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
+    }*/
+    local_tot_u[local_index] = tot_u;
+    barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize to ensure all writes to local memory are completed
+
+    // Perform parallel reduction within the local memory
+    for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
+        if (local_index < stride) {
+            local_tot_u[local_index] += local_tot_u[local_index + stride];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize at each step of the reduction
     }
     if(local_index == 0){
 
-        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
     }
 
 
