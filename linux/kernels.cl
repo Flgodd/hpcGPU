@@ -1,11 +1,6 @@
 
 #define NSPEEDS         9
-//#define C_SQ		(1.0 / 3.0) /* square of speed of sound */
-//#define W0			(4.0 / 9.0)  /* weighting factor */
-//#define W1			(W0 / 4)
-//#define W2			(W1 / 4)
-//#define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
-//#define C_SQ_R_2	(3.0 / 2.0)
+
 #define C_SQ		(1.0 / 3.0) /* square of speed of sound */
 #define W0			(4.0 / 9.0)  /* weighting factor */
 #define W1			(W0 / 4)
@@ -15,12 +10,12 @@
 #define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
 #define C_SQ_R_2	(3.0 / 2.0)
 
-#ifndef BLOCK_I
-	#define BLOCK_I 16
-#endif
-#ifndef BLOCK_J
-	#define BLOCK_J 16
-#endif
+//#ifndef BLOCK_I
+//	#define BLOCK_I 16
+//#endif
+//#ifndef BLOCK_J
+//	#define BLOCK_J 16
+//#endif
 
 
 typedef struct
@@ -62,7 +57,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-	local float scratch[64*2];
+    float local_tot_u[64*2];
 
 	int ii = get_global_id(0);
 	int jj = get_global_id(1);
@@ -195,20 +190,26 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
     }
 
        
-	scratch[local_index] = tot_u;
+	local_tot_u[local_index] = tot_u;
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	for(int offset = local_size/2; offset > 0; offset = offset / 2){
+	/*for(int offset = local_size/2; offset > 0; offset = offset / 2){
 		if(local_index < offset){
-			float other = scratch[local_index + offset];
-			float mine = scratch[local_index];
-			scratch[local_index] = mine + other;
+			float other = local_tot_u[local_index + offset];
+			float mine = local_tot_u[local_index];
+			local_tot_u[local_index] = mine + other;
 		}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	}
+	}*/
+    for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
+        if (local_index < stride) {
+            local_tot_u[local_index] += local_tot_u[local_index + stride];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize at each step of the reduction
+    }
 	if(local_index == 0){
 
-        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
     }
 
 		
