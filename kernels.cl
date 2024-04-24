@@ -184,7 +184,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
 
     //__local float local_tot_u[LOCAL_SIZE];
 
-    local_tot_u[local_index] = tot_u;
+    /*local_tot_u[local_index] = tot_u;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
@@ -197,6 +197,20 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     // The first thread in each workgroup writes the local sum to the global memory
     if (local_index == 0) {
         tt_vels[get_group_id(0)] = local_tot_u[0];
+    }*/
+    local_tot_u[local_index] = tot_u;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    #pragma unroll
+    for(int offset = local_size/2; offset > 0; offset = offset / 2){
+        if(local_index < offset){
+            float other = local_tot_u[local_index + offset];
+            float mine =local_tot_u[local_index];
+local_tot_u[local_index] = mine + other;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if(local_index == 0){
+        tot_vel[(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
     }
 
 }
