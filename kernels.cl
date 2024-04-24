@@ -46,7 +46,7 @@ kernel void accelerate_flow(global t_speed* cells,
   }
 }
 
-kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega, float* tt_vels){
+kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega, global float* tt_vels){
     /* get column and row indices */
     int ii = get_global_id(0);
     int jj = get_global_id(1);
