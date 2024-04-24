@@ -197,10 +197,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
        
 	scratch[local_index] = tot_u;
 	barrier(CLK_LOCAL_MEM_FENCE);
-	/*#pragma unroll
-	for(int i=0; i < 9 ; i++){
-        tmp_cells[ii + jj*nx].speeds[i] = u[i];
-	}*/
+
 	for(int offset = local_size/2; offset > 0; offset = offset / 2){
 		if(local_index < offset){
 			float other = scratch[local_index + offset];
@@ -211,7 +208,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	}
 	if(local_index == 0){
         //printf("%f\n", tot_u);
-		tot_vel[(get_num_groups(0)*get_num_groups(1)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = scratch[0];
+        tot_vel[get_group_id(1) * get_num_groups(0) + get_group_id(0)] = scratch[0];
 	}
 
 		
