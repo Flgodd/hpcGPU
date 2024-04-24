@@ -211,7 +211,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 }*/
 
-kernel void collision(global float* cells, global float* tmp_cells, global short* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
+kernel void propagate(global float* cells, global float* tmp_cells, global short* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
     local float scratch[64*2];
 
