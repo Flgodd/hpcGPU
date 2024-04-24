@@ -286,7 +286,9 @@ int timestep(const t_param params, float* cells, float *tmp_cells, short* obstac
   accelerate_flow(params, cells, obstacles, ocl, flip);
   collision(params, obstacles, ocl, flip, tt);
   //err = clFinish(ocl.queue);
-
+    cl_mem temp = ocl.cells;
+    ocl.cells = ocl.tmp_cells;
+    ocl.tmp_cells = temp;
   return EXIT_SUCCESS;
 }
 
@@ -295,12 +297,13 @@ int accelerate_flow(const t_param params, float* cells, short* obstacles, t_ocl 
   cl_int err;
   //err = clFinish(ocl.queue);
   // Set kernel arguments
-  if (!flip) {
+  /*if (!flip) {
 	  err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
   }
   else {
 	  err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.tmp_cells);
-  }
+  }*/
+    err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
 
 
@@ -324,9 +327,9 @@ int collision(const t_param params, short* obstacles, t_ocl ocl, int flip , int 
 	cl_int err;
 
 	// Set kernel arguments
-	err = clSetKernelArg(ocl.collision, flip, sizeof(cl_mem), &ocl.cells);
+	err = clSetKernelArg(ocl.collision, 0, sizeof(cl_mem), &ocl.cells);
 	checkError(err, "setting collision arg 0", __LINE__);
-	err = clSetKernelArg(ocl.collision, !flip, sizeof(cl_mem), &ocl.tmp_cells);
+	err = clSetKernelArg(ocl.collision, 1, sizeof(cl_mem), &ocl.tmp_cells);
 	checkError(err, "setting collision arg 1", __LINE__);
 	err = clSetKernelArg(ocl.collision, 7, sizeof(cl_int), &tt);
 	checkError(err, "setting collision arg 7", __LINE__);
