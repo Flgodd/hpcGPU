@@ -225,6 +225,9 @@ int main(int argc, char* argv[])
 		timestep(params, cells, tmp_cells, obstacles, ocl, flip, tt);
 		//av_vels[tt] = av_velocity(params, cells, obstacles, ocl);
 		flip = !flip;
+        cl_mem temp = ocl.cells;
+        ocl.cells = ocl.tmp_cells;
+        ocl.tmp_cells = temp;
 		//err = clFinish(ocl.queue);
 #ifdef DEBUG
 		printf("==timestep: %d==\n", tt);
@@ -286,9 +289,7 @@ int timestep(const t_param params, float* cells, float *tmp_cells, short* obstac
   accelerate_flow(params, cells, obstacles, ocl, flip);
   collision(params, obstacles, ocl, flip, tt);
   //err = clFinish(ocl.queue);
-    cl_mem temp = ocl.cells;
-    ocl.cells = ocl.tmp_cells;
-    ocl.tmp_cells = temp;
+
   return EXIT_SUCCESS;
 }
 
