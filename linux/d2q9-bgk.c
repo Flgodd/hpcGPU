@@ -132,10 +132,10 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl, int tt);
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+int timestep(const t_param params, t_ocl ocl, int tt);
+int accelerate_flow(const t_param params, t_ocl ocl);
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
-int combineReCol(const t_param params, int* obstacles, t_ocl ocl, int tt);
+int combineReCol(const t_param params, t_ocl ocl, int tt);
 int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
 
 	for (int tt = 0; tt < params.maxIters; tt++)
 	{
-		timestep(params, cells, tmp_cells, obstacles, ocl, tt);
+		timestep(params, ocl, tt);
 		//av_vels[tt] = av_velocity(params, cells, obstacles, ocl);
         float tv = 0;
         for (int i = 0; i < ocl.workGroups; i++) {
@@ -306,19 +306,18 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, t_speed* cells, t_speed *tmp_cells, int* obstacles, t_ocl ocl, int tt)
+int timestep(const t_param params, t_ocl ocl, int tt)
 {
   cl_int err;
 
-  // Write cells to device
-  accelerate_flow(params, cells, obstacles, ocl);
-  combineReCol(params, obstacles, ocl, tt);
-  //err = clFinish(ocl.queue);
+  accelerate_flow(params,  ocl);
+  combineReCol(params,  ocl, tt);
+
 
   return EXIT_SUCCESS;
 }
 
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
+int accelerate_flow(const t_param params, t_ocl ocl)
 {
   cl_int err;
 
@@ -332,16 +331,13 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
                                1, NULL, global, NULL, 0, NULL, NULL);
   checkError(err, "enqueueing accelerate_flow kernel", __LINE__);
 
-  // Wait for kernel to finish
-  //err = clFinish(ocl.queue);
-  //checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
   return EXIT_SUCCESS;
 }
 
 
 
-int combineReCol(const t_param params, int* obstacles, t_ocl ocl , int tt)
+int combineReCol(const t_param params, t_ocl ocl , int tt)
 {
 	cl_int err;
 
