@@ -312,8 +312,9 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   checkError(err, "setting propagate arg 6", __LINE__);
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
+  size_t local[2] = { 64, 2 };
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.propagate,
-                               2, NULL, global, NULL, 0, NULL, NULL);
+                               2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing propagate kernel", __LINE__);
 
   // Wait for kernel to finish
