@@ -70,14 +70,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
-#define INDEX(ii,jj,nx,ny,speed) (((nx)*(ny)*(speed))+((ii)*(nx)+(jj)))
 
-#ifndef BLOCK_I
-	#define BLOCK_I 16
-#endif
-#ifndef BLOCK_J
-	#define BLOCK_J 16
-#endif
 /* struct to hold the parameter values */
 typedef struct
 {
@@ -159,11 +152,11 @@ void usage(const char* exe);
 
 cl_device_id selectOpenCLDevice();
 
-int total_cells;
+//int total_cells;
 float* total_vel = NULL;
-int total_obstacles = 0;
+//int total_obstacles = 0;
 float gl_obs_u;
-char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
+//char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
 /*
 ** main program:
 ** initialise, timestep loop, finalise
