@@ -70,6 +70,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	int jj_local = get_local_id(0);
 	int ii_local = get_local_id(1);
 
+    int idx = ii + jj * nx;
 	int nx_local = get_local_size(0);
 	int ny_local = get_local_size(1);
 	float tot_u = 0;
