@@ -331,7 +331,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   for (int i = 0; i < ocl.workGroups; i++) {
       total_velocity += tt_vel[i];
   }
-  printf("%f\n", total_velocity);
+  //printf("%f\n", total_velocity);
   return total_velocity/gl_obs_u;
 }
 

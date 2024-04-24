@@ -181,7 +181,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         /* increase counter of inspected cells */
         //++*tot_cells;
     }
-
+    printf("%f\n", tot_u);
     //__local float local_tot_u[LOCAL_SIZE];
 
     /*local_tot_u[local_index] = tot_u;
