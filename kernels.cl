@@ -8,6 +8,8 @@
 #define W2			(W1 / 4)
 #define IN_C_SQ	    1/C_SQ
 #define A	        1.f/(2.f * C_SQ * C_SQ)
+#define C_SQ_2		(1.0 / ((C_SQ * C_SQ) + (C_SQ * C_SQ)))
+#define C_SQ_R_2	(3.0 / 2.0)
 typedef struct
 {
   float speeds[NSPEEDS];
