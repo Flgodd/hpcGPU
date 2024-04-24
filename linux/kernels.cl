@@ -62,15 +62,17 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	int ii = get_global_id(0);
 	int jj = get_global_id(1);
 
-	int jj_local = get_local_id(0);
-	int ii_local = get_local_id(1);
+	int ii_local = get_local_id(0);
+	int jj_local = get_local_id(1);
 
     int idx = ii + jj * nx;
+
 	int nx_local = get_local_size(0);
 	int ny_local = get_local_size(1);
-	float tot_u = 0;
-	int local_index = ii_local*nx_local + jj_local;
+	int local_index = jj_local*nx_local + ii_local;
 	int local_size = nx_local * ny_local;
+
+    float tot_u = 0;
     int y_n = (jj + 1) % ny;
     int x_e = (ii + 1) % nx;
     int y_s = (jj == 0) ? (jj + ny - 1) : (jj - 1);
@@ -193,20 +195,20 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
 	local_tot_u[local_index] = tot_u;
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	/*for(int offset = local_size/2; offset > 0; offset = offset / 2){
+	for(int offset = local_size/2; offset > 0; offset = offset / 2){
 		if(local_index < offset){
 			float other = local_tot_u[local_index + offset];
 			float mine = local_tot_u[local_index];
 			local_tot_u[local_index] = mine + other;
 		}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	}*/
-    for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
+	}
+    /*for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
         if (local_index < stride) {
             local_tot_u[local_index] += local_tot_u[local_index + stride];
         }
         barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize at each step of the reduction
-    }
+    }*/
 	if(local_index == 0){
 
         tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
