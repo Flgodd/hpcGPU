@@ -200,10 +200,12 @@ int main(int argc, char* argv[])
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
+    printf("%f\n", gl_obs_u);
   for (int tt = 0; tt < params.maxIters; tt++)
   {
 
     av_vels[tt] = timestep(params, cells, tmp_cells, obstacles, ocl, tt_vel);
+    if(tt == 0)printf("%f\n", av_vels[tt]);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -320,7 +322,7 @@ float propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
   checkError(err, "waiting for propagate kernel", __LINE__);
-    printf("here");
+
   err = clEnqueueReadBuffer(ocl.queue, ocl.tt_vels, CL_TRUE, 0,
                               sizeof(float) * ocl.workGroups, tt_vel, 0, NULL, NULL);
   checkError(err, "reading back results", __LINE__);
