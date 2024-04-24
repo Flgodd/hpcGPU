@@ -75,6 +75,7 @@ kernel void collision(global float* cells, global float* tmp_cells, global short
 	/* propagate densities to neighbouring cells, following
 	** appropriate directions of travel and writing into
 	** scratch space grid */
+    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0]);
 	float speeds[9];
 	speeds[0] = cells[INDEX(ii,jj,nx,ny,	0)];	
 	speeds[1] = cells[INDEX(ii,x_w,nx,ny,	1)];
