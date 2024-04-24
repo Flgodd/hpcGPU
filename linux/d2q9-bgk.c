@@ -358,7 +358,6 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
 
 	checkError(err, "enqueueing collision kernel", __LINE__);
 
-	// Wait for kernel to finish
 	err = clFinish(ocl.queue);
 	checkError(err, "waiting for collision kernel", __LINE__);
 
