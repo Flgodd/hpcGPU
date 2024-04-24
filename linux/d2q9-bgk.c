@@ -709,10 +709,10 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->total_vel = clCreateBuffer(
 	  ocl->context, CL_MEM_READ_WRITE,
-	  sizeof(cl_float)*(ocl->workGroups), NULL, &err);
+	  sizeof(cl_float)*(ocl->workGroups)*params->maxIters, NULL, &err);
   checkError(err, "creating vel buffer", __LINE__);
 
-  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
+  total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups)*params->maxIters);
 
   return EXIT_SUCCESS;
 }
