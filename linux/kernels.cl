@@ -201,7 +201,7 @@ kernel void collision(global t_speed* cells, global t_speed* tmp_cells, global i
     barrier(CLK_LOCAL_MEM_FENCE);  // Synchronize to ensure all writes to local memory are completed
 
     // Perform parallel reduction within the local memory
-    for (int stride = get_local_size(0) / 2; stride > 0; stride >>= 1) {
+    for (int stride = local_size / 2; stride > 0; stride >>= 1) {
         if (local_index < stride) {
             local_tot_u[local_index] += local_tot_u[local_index + stride];
         }
