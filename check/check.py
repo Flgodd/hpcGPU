@@ -3,11 +3,11 @@
 import sys
 
 # Check for python version - requires 2.7 (and not 3)
-if sys.version_info[:2] != (2,7):
-    print("Requires Python 2.7")
-    print("On BCP3 run:")
-    print("module load languages/python-2.7.6")
-    exit(1)
+#if sys.version_info[:2] != (2,7):
+#    print("Requires Python 2.7")
+ #   print("On BCP3 run:")
+#    print("module load languages/python-2.7.6")
+#    exit(1)
 
 import argparse
 import numpy as np
@@ -73,12 +73,12 @@ av_vels_sim, final_state_sim = load_dat_files(parsed_args.av_vels_file[0], parse
 
 # Make sure the coordinates are in the right order
 if np.any(final_state_ref[:,0:2] != final_state_sim[:,0:2]):
-    print "Final state files coordinates were not the same"
+    print("Final state files coordinates were not the same")
     exit(1)
 
 # Make sure the av_vels have the same number of steps
 if av_vels_ref.size != av_vels_sim.size:
-    print "Different number of steps in av_vels files"
+    print("Different number of steps in av_vels files")
     exit(1)
 
 def get_diff_values(ref_vals, sim_vals):
@@ -101,7 +101,7 @@ def get_diff_values(ref_vals, sim_vals):
 
 def print_diffs(format_strings, format_dict):
     for s in format_strings:
-        print s.format(**format_dict)
+        print(s.format(**format_dict))
 
 av_vels_diffs = get_diff_values(av_vels_ref, av_vels_sim)
 av_vels_strings = [
@@ -112,7 +112,7 @@ av_vels_strings = [
 
 print_diffs(av_vels_strings, av_vels_diffs)
 
-print
+print()
 
 final_state_diffs = get_diff_values(final_state_ref[:,2], final_state_sim[:,2])
 final_state_strings = [
@@ -128,21 +128,21 @@ final_state_diffs["ii"] = int(final_state_sim[max_diff_loc,1])
 
 print_diffs(final_state_strings, final_state_diffs)
 
-print
+print()
 
 # Find out if either of them failed
 final_state_failed = (not np.isfinite(final_state_diffs["max_diff_pcnt"])) or (np.abs(final_state_diffs["max_diff_pcnt"]) > parsed_args.tolerance[0])
 av_vels_failed = (not np.isfinite(av_vels_diffs["max_diff_pcnt"])) or (np.abs(av_vels_diffs["max_diff_pcnt"]) > parsed_args.tolerance[0])
 
 if final_state_failed:
-    print "final state failed check"
+    print("final state failed check")
 if av_vels_failed:
-    print "av_vels failed check"
+    print("av_vels failed check")
 
 # Return 1 on failure
 if final_state_failed or av_vels_failed:
     exit(1)
 else:
-    print "Both tests passed!"
+    print("Both tests passed!")
     exit(0)
 
