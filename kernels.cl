@@ -72,7 +72,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
     /* propagate densities from neighbouring cells, following
     ** appropriate directions of travel and writing into
     ** scratch space grid */
-    if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
+    //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0].speeds[0]);
 
     const float tmpC0 = cells[idx].speeds[0]; /* central cell, no movement */
     const float tmpC1 = cells[x_w + jj * nx].speeds[1]; /* east */
@@ -178,7 +178,7 @@ kernel void propagate(global t_speed* cells, global t_speed* tmp_cells, global i
         tmp_cells[idx].speeds[6] = tmpC6 + omega * (d_equ6 - tmpC6);
         tmp_cells[idx].speeds[7] = tmpC7 + omega * (d_equ7 - tmpC7);
         tmp_cells[idx].speeds[8] = tmpC8 + omega * (d_equ8 - tmpC8);
-
+        if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", (u_x * u_x) + (u_y * u_y));
         tot_u += native_sqrt((u_x * u_x) + (u_y * u_y));
         /* increase counter of inspected cells */
         //++*tot_cells;
