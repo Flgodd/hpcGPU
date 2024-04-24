@@ -17,7 +17,7 @@
 
 
 kernel void accelerate_flow(global float* cells,
-                            global short* obstacles,
+                            global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
 {
