@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=d2q9-bgk
-#SBATCH --gres=gpu:1
-#SBATCH --partition=gpu
+#SBATCH --gres=gpu:0
+#SBATCH --partition=teach_gpu
 #SBATCH --account=COMS031424
 #SBATCH --output=lbm.out
 #SBATCH --time=00:30:00
