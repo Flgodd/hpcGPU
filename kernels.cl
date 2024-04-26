@@ -7,7 +7,12 @@
 #define W2			(W1 / 4)
 #define IN_C_SQ	    1/C_SQ
 #define A	        1.f/(2.f * C_SQ * C_SQ)
-
+#ifndef BLOCK_I
+    #define BLOCK_I 16
+#endif
+#ifndef BLOCK_J
+    #define BLOCK_J 16
+#endif
 
 typedef struct
 {
@@ -44,7 +49,7 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
 
 kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-    local float local_tot_u[32*32];
+    local float local_tot_u[16*16];
 
     int ii = get_global_id(0);
     int jj = get_global_id(1);

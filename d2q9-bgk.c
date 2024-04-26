@@ -347,7 +347,7 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     checkError(err, "setting collision arg 7", __LINE__);
     // Enqueue kernel
     size_t global[2] = { params.nx, params.ny };
-    size_t local[2] = { 32, 32 };
+    size_t local[2] = { 16, 16 };
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.combineReCol,
                                  2, NULL, global, local, 0, NULL, NULL);
 
@@ -652,7 +652,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
     checkError(err, "creating tmp_cells buffer", __LINE__);
 
 
-    ocl->workGroupSize = 32*32;
+    ocl->workGroupSize = 16*16;
     ocl->workGroups = (params->nx*params->ny) / ocl->workGroupSize;
 
     printf("workgroup size: %d \n", (int)ocl->workGroupSize);
