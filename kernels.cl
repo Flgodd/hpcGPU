@@ -191,7 +191,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
     }
     if(local_index == 0){
 
-        tot_vel[(get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
+        tot_vel[tt*(get_num_groups(1)*get_num_groups(0)) + (get_group_id(0) + get_group_id(1)*get_num_groups(0))] = local_tot_u[0];
     }
 
 

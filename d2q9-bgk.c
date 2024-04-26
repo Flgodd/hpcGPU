@@ -217,6 +217,7 @@ int main(int argc, char* argv[])
     checkError(err, "setting collision arg 5", __LINE__);
     err = clSetKernelArg(ocl.combineReCol, 6, sizeof(cl_mem), &ocl.total_vel);
     checkError(err, "setting collision arg 6", __LINE__);
+
     err = clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.obstacles);
     checkError(err, "setting accelerate_flow arg 1", __LINE__);
     err = clSetKernelArg(ocl.accelerate_flow, 2, sizeof(cl_int), &params.nx);
@@ -239,13 +240,7 @@ int main(int argc, char* argv[])
     for (int tt = 0; tt < params.maxIters; tt++)
     {
         timestep(params, ocl, tt);
-        //av_vels[tt] = av_velocity(params, cells, obstacles, ocl);
-        float tv = 0;
-        for (int i = 0; i < ocl.workGroups; i++) {
-            tv += total_vel[i];
-        }
-        //if(tt == 0)printf("host :%f\n", tv);
-        av_vels[tt] = tv/gl_obs_u;
+
 
         cl_mem temp = ocl.cells;
         ocl.cells = ocl.tmp_cells;
@@ -257,17 +252,6 @@ int main(int argc, char* argv[])
 		printf("tot density: %.12E\n", total_density(params, cells));
 #endif
     }
-
-//    err = clEnqueueReadBuffer(
-//      ocl.queue, ocl.cells, CL_TRUE, 0,
-//      sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-//
-//
-//
-//  av_velocity(params, cells, obstacles, ocl, av_vels);
-//
-//  checkError(err, "reading tmp_cells data", __LINE__);
-
 
 #ifdef  __unix__
     gettimeofday(&timstr, NULL);
@@ -286,7 +270,20 @@ int main(int argc, char* argv[])
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cells, CL_TRUE, 0,
             sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+    checkError(err, "reading cells data", __LINE__);
 
+    err = clEnqueueReadBuffer(
+            ocl.queue, ocl.total_vel, CL_TRUE, 0,
+            sizeof(cl_float)*params.maxIters*(ocl.workGroups), total_vel, 0, NULL, NULL);
+    checkError(err, "reading total_vel data", __LINE__);
+
+    for (int i = 0; i < params.maxIters; i++) {
+        float tv = 0;
+        for(int j = 0; j<ocl.workGroups; j++){
+            tv += total_vel[i*ocl.workGroups + j];
+        }
+        av_vels[i] = tv/gl_obs_u;
+    }
 
 
     av_velocity(params, cells, obstacles, ocl, av_vels);
@@ -361,10 +358,10 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     err = clFinish(ocl.queue);
     checkError(err, "waiting for collision kernel", __LINE__);
 
-    err = clEnqueueReadBuffer(
-            ocl.queue, ocl.total_vel, CL_TRUE, 0,
-            sizeof(cl_float)*(ocl.workGroups), total_vel, 0, NULL, NULL);
-    checkError(err, "reading total_vel data", __LINE__);
+//    err = clEnqueueReadBuffer(
+//            ocl.queue, ocl.total_vel, CL_TRUE, 0,
+//            sizeof(cl_float)*(ocl.workGroups), total_vel, 0, NULL, NULL);
+//    checkError(err, "reading total_vel data", __LINE__);
 
     return EXIT_SUCCESS;
 }
@@ -692,10 +689,10 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     ocl->total_vel = clCreateBuffer(
             ocl->context, CL_MEM_READ_WRITE,
-            sizeof(cl_float)*(ocl->workGroups), NULL, &err);
+            sizeof(cl_float)*params->maxIters*(ocl->workGroups), NULL, &err);
     checkError(err, "creating vel buffer", __LINE__);
 
-    total_vel = (float*)malloc(sizeof(float)*(ocl->workGroups));
+    total_vel = (float*)malloc(sizeof(float)*params->maxIters*(ocl->workGroups));
 
     return EXIT_SUCCESS;
 }
