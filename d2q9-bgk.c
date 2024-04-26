@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
         av_vels[i] = tv/gl_obs_u;
     }
 
-
+    free(tt_vels);
     av_velocity(params, cells, obstacles);
 
     checkError(err, "reading tmp_cells data", __LINE__);
