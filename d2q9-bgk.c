@@ -650,12 +650,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
             ocl->context, CL_MEM_READ_ONLY,
             sizeof(int) * params->nx * params->ny, NULL, &err);
     checkError(err, "creating tmp_cells buffer", __LINE__);
-    ocl->total_vel = clCreateBuffer(
-            ocl->context, CL_MEM_READ_WRITE,
-            sizeof(cl_float)*params->maxIters*(ocl->workGroups), NULL, &err);
-    checkError(err, "creating vel buffer", __LINE__);
-
-    *tt_vels = (float*)malloc(sizeof(float)*params->maxIters*(ocl->workGroups));
 
 
     ocl->workGroupSize = 64*2;
@@ -663,6 +657,13 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     printf("workgroup size: %d \n", (int)ocl->workGroupSize);
     printf("workgroup count: %d \n", (int)(ocl->workGroups));
+
+    ocl->total_vel = clCreateBuffer(
+            ocl->context, CL_MEM_READ_WRITE,
+            sizeof(cl_float)*params->maxIters*(ocl->workGroups), NULL, &err);
+    checkError(err, "creating vel buffer", __LINE__);
+
+    *tt_vels = (float*)malloc(sizeof(float)*params->maxIters*(ocl->workGroups));
 
     return EXIT_SUCCESS;
 }
