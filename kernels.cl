@@ -49,7 +49,7 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
 
 kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, int nx, int ny, float omega,  global float* tot_vel, int tt)
 {
-    local float local_tot_u[64*2];
+    local float local_tot_u[16*16];
 
     int ii = get_global_id(0);
     int jj = get_global_id(1);
