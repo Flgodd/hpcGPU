@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
     }
 
     /* initialise our data structures and load values from file */
-    initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, &gl_obs_u, tt_vels);
+    initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, &gl_obs_u, &tt_vels);
 
     // Write cells to OpenCL buffer
     err = clEnqueueWriteBuffer(
