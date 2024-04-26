@@ -118,7 +118,7 @@ typedef struct
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl);
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl,  float* gl_obs_u, float** tt_vels);
 
 /*
 ** The main calculation methods.
@@ -140,7 +140,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float* av_vels);
+float av_velocity(const t_param params, t_speed* cells, int* obstacles);
 
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float vel);
@@ -152,10 +152,6 @@ void usage(const char* exe);
 
 cl_device_id selectOpenCLDevice();
 
-//int total_cells;
-float* total_vel = NULL;
-//int total_obstacles = 0;
-float gl_obs_u;
 char* options = " -cl-mad-enable -cl-unsafe-math-optimizations -cl-finite-math-only -cl-fast-relaxed-math";
 /*
 ** main program:
@@ -171,6 +167,8 @@ int main(int argc, char* argv[])
     t_speed* tmp_cells = NULL;    /* scratch space */
     int*     obstacles = NULL;    /* grid indicating which cells are blocked */
     float* av_vels = NULL;     /* a record of the av. velocity computed for each timestep */
+    float* tt_vels = NULL;
+    float gl_obs_u;
     cl_int err;
 #ifdef __unix__
     struct timeval timstr;        /* structure to hold elapsed time */
@@ -192,7 +190,7 @@ int main(int argc, char* argv[])
     }
 
     /* initialise our data structures and load values from file */
-    initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
+    initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, &gl_obs_u, tt_vels);
 
     // Write cells to OpenCL buffer
     err = clEnqueueWriteBuffer(
@@ -274,19 +272,19 @@ int main(int argc, char* argv[])
 
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.total_vel, CL_TRUE, 0,
-            sizeof(cl_float)*params.maxIters*(ocl.workGroups), total_vel, 0, NULL, NULL);
+            sizeof(cl_float)*params.maxIters*(ocl.workGroups), tt_vels, 0, NULL, NULL);
     checkError(err, "reading total_vel data", __LINE__);
 
     for (int i = 0; i < params.maxIters; i++) {
         float tv = 0;
         for(int j = 0; j<ocl.workGroups; j++){
-            tv += total_vel[i*ocl.workGroups + j];
+            tv += tt_vels[i*ocl.workGroups + j];
         }
         av_vels[i] = tv/gl_obs_u;
     }
 
 
-    av_velocity(params, cells, obstacles, ocl, av_vels);
+    av_velocity(params, cells, obstacles);
 
     checkError(err, "reading tmp_cells data", __LINE__);
     printf("==done==\n");
@@ -358,37 +356,10 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     err = clFinish(ocl.queue);
     checkError(err, "waiting for collision kernel", __LINE__);
 
-//    err = clEnqueueReadBuffer(
-//            ocl.queue, ocl.total_vel, CL_TRUE, 0,
-//            sizeof(cl_float)*(ocl.workGroups), total_vel, 0, NULL, NULL);
-//    checkError(err, "reading total_vel data", __LINE__);
-
     return EXIT_SUCCESS;
 }
 
-/*float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float* av_vels)
-{
-	cl_int err;
-
-	err = clEnqueueReadBuffer(
-		ocl.queue, ocl.total_vel, CL_TRUE, 0,
-		sizeof(cl_float)*(ocl.workGroups)*params.maxIters, total_vel, 0, NULL, NULL);
-	checkError(err, "reading total_vel data", __LINE__);
-
-	int groups = ocl.workGroups;
-	for (int i = 0; i < params.maxIters; i++) {
-		double tot = 0;
-	#pragma simd
-		for (int j = 0; j < groups; j++) {
-			tot += total_vel[i*groups + j];
-		}
-		av_vels[i] = tot / (double)total_cells;
-	}
-	return EXIT_SUCCESS;
-
-}*/
-
-float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float* av_vels)
+float av_velocity(const t_param params, t_speed* cells, int* obstacles)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -441,7 +412,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
 
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl)
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl, float *gl_obs_u, float** tt_vels)
 {
     char   message[1024];  /* message buffer */
     FILE*   fp;            /* file pointer */
@@ -590,7 +561,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
         (*obstacles_ptr)[yy * params->nx + xx] = blocked;
 
     }
-    int temp = 0;
+    float temp = 0;
     for (int jj = 0; jj < params->ny; jj++)
     {
         for (int ii = 0; ii < params->nx; ii++)
@@ -598,7 +569,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
             temp += (!(*obstacles_ptr)[ii + jj*params->nx] ? 1 : 0);
         }
     }
-    gl_obs_u = temp;
+    *gl_obs_u = temp;
     /* and close the file */
     fclose(fp);
 
@@ -679,6 +650,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
             ocl->context, CL_MEM_READ_ONLY,
             sizeof(int) * params->nx * params->ny, NULL, &err);
     checkError(err, "creating tmp_cells buffer", __LINE__);
+    ocl->total_vel = clCreateBuffer(
+            ocl->context, CL_MEM_READ_WRITE,
+            sizeof(cl_float)*params->maxIters*(ocl->workGroups), NULL, &err);
+    checkError(err, "creating vel buffer", __LINE__);
+
+    *tt_vels = (float*)malloc(sizeof(float)*params->maxIters*(ocl->workGroups));
 
 
     ocl->workGroupSize = 64*2;
@@ -686,13 +663,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     printf("workgroup size: %d \n", (int)ocl->workGroupSize);
     printf("workgroup count: %d \n", (int)(ocl->workGroups));
-
-    ocl->total_vel = clCreateBuffer(
-            ocl->context, CL_MEM_READ_WRITE,
-            sizeof(cl_float)*params->maxIters*(ocl->workGroups), NULL, &err);
-    checkError(err, "creating vel buffer", __LINE__);
-
-    total_vel = (float*)malloc(sizeof(float)*params->maxIters*(ocl->workGroups));
 
     return EXIT_SUCCESS;
 }
