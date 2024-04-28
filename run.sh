@@ -27,4 +27,4 @@ module load NVIDIA/nvhpc/21.9
 #./d2q9-bgk input_128x128.params obstacles_128x128.dat
 #./d2q9-bgk input_256x256.params obstacles_256x256.dat
 #./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
-nvprof -o my_profile_report ./d2q9-bgk input_2048x2048.params obstacles_2048x2048.dat
+ncu -o my_profile_report ./d2q9-bgk input_2048x2048.params obstacles_2048x2048.dat
