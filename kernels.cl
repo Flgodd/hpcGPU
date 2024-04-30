@@ -16,7 +16,7 @@
 
 typedef struct
 {
-    float speeds[NSPEEDS];
+    float *speeds[NSPEEDS];
 } t_speed;
 kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx, int ny, float density, float accel){
     /* compute weighting factors */
@@ -32,18 +32,18 @@ kernel void accelerate_flow(global t_speed* cells, global int* obstacles, int nx
     /* if the cell is not occupied and
     ** we don't send a negative density */
     if (!obstacles[ii + jj* nx]
-        && (cells[ii + jj* nx].speeds[3] - w1) > 0.f
-        && (cells[ii + jj* nx].speeds[6] - w2) > 0.f
-        && (cells[ii + jj* nx].speeds[7] - w2) > 0.f)
+        && (cells->speeds[3][ii + jj* nx] - w1) > 0.f
+        && (cells->speeds[6][ii + jj* nx] - w2) > 0.f
+        && (cells->speeds[7][ii + jj* nx] - w2) > 0.f)
     {
         /* increase 'east-side' densities */
-        cells[ii + jj* nx].speeds[1] += w1;
-        cells[ii + jj* nx].speeds[5] += w2;
-        cells[ii + jj* nx].speeds[8] += w2;
+        cells->speeds[1][ii + jj* nx] += w1;
+        cells->speeds[5][ii + jj* nx] += w2;
+        cells->speeds[8][ii + jj* nx] += w2;
         /* decrease 'west-side' densities */
-        cells[ii + jj* nx].speeds[3] -= w1;
-        cells[ii + jj* nx].speeds[6] -= w2;
-        cells[ii + jj* nx].speeds[7] -= w2;
+        cells->speeds[3][ii + jj* nx] -= w1;
+        cells->speeds[6][ii + jj* nx] -= w2;
+        cells->speeds[7][ii + jj* nx] -= w2;
     }
 }
 
@@ -65,15 +65,15 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
     ** appropriate directions of travel and writing into
     ** scratch space grid */
     //if(local_index == 0 && ii == 0 && jj == 0)printf("%f\n", cells[0]);
-    const float tmpC0 = cells[idx].speeds[0]; /* central cell, no movement */
-    const float tmpC1 = cells[x_w + jj * nx].speeds[1]; /* east */
-    const float tmpC2 = cells[ii + y_s * nx].speeds[2]; /* north */
-    const float tmpC3 = cells[x_e + jj * nx].speeds[3]; /* west */
-    const float tmpC4 = cells[ii + y_n * nx].speeds[4]; /* south */
-    const float tmpC5 = cells[x_w + y_s * nx].speeds[5]; /* north-east */
-    const float tmpC6 = cells[x_e + y_s * nx].speeds[6]; /* north-west */
-    const float tmpC7 = cells[x_e + y_n * nx].speeds[7]; /* south-west */
-    const float tmpC8 = cells[x_w + y_n * nx].speeds[8]; /* south-east */
+    const float tmpC0 = cells->speeds[0][idx]; /* central cell, no movement */
+    const float tmpC1 = cells->speeds[1][x_w + jj * nx]; /* east */
+    const float tmpC2 = cells->speeds[2][ii + y_s * nx]; /* north */
+    const float tmpC3 = cells->speeds[3][x_e + jj * nx]; /* west */
+    const float tmpC4 = cells->speeds[4][ii + y_n * nx]; /* south */
+    const float tmpC5 = cells->speeds[5][x_w + y_s * nx]; /* north-east */
+    const float tmpC6 = cells->speeds[6][x_e + y_s * nx]; /* north-west */
+    const float tmpC7 = cells->speeds[7][x_e + y_n * nx]; /* south-west */
+    const float tmpC8 = cells->speeds[8][x_w + y_n * nx]; /* south-east */
 
     /* don't consider occupied cells */
     if (obstacles[idx])
@@ -81,14 +81,14 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
 
         /* called after propagate, so taking values from scratch space
         ** mirroring, and writing into main grid */
-        tmp_cells[idx].speeds[1] = tmpC3;
-        tmp_cells[idx].speeds[2] = tmpC4;
-        tmp_cells[idx].speeds[3] = tmpC1;
-        tmp_cells[idx].speeds[4] = tmpC2;
-        tmp_cells[idx].speeds[5] = tmpC7;
-        tmp_cells[idx].speeds[6] = tmpC8;
-        tmp_cells[idx].speeds[7] = tmpC5;
-        tmp_cells[idx].speeds[8] = tmpC6;
+        tmp_cells->speeds[1][idx] = tmpC3;
+        tmp_cells->speeds[2][idx] = tmpC4;
+        tmp_cells->speeds[3][idx] = tmpC1;
+        tmp_cells->speeds[4][idx] = tmpC2;
+        tmp_cells->speeds[5][idx] = tmpC7;
+        tmp_cells->speeds[6][idx] = tmpC8;
+        tmp_cells->speeds[7][idx] = tmpC5;
+        tmp_cells->speeds[8][idx] = tmpC6;
     }
     if (!obstacles[idx]){
 
@@ -160,15 +160,15 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
                                        + (t));
         /* relaxation step */
 
-        tmp_cells[idx].speeds[0] = tmpC0 + omega * (d_equ0 - tmpC0);
-        tmp_cells[idx].speeds[1] = tmpC1 + omega * (d_equ1- tmpC1);
-        tmp_cells[idx].speeds[2] = tmpC2 + omega * (d_equ2 - tmpC2);
-        tmp_cells[idx].speeds[3] = tmpC3 + omega * (d_equ3 - tmpC3);
-        tmp_cells[idx].speeds[4] = tmpC4 + omega * (d_equ4 - tmpC4);
-        tmp_cells[idx].speeds[5] = tmpC5 + omega * (d_equ5 - tmpC5);
-        tmp_cells[idx].speeds[6] = tmpC6 + omega * (d_equ6 - tmpC6);
-        tmp_cells[idx].speeds[7] = tmpC7 + omega * (d_equ7 - tmpC7);
-        tmp_cells[idx].speeds[8] = tmpC8 + omega * (d_equ8 - tmpC8);
+        tmp_cells->speeds[0][idx] = tmpC0 + omega * (d_equ0 - tmpC0);
+        tmp_cells->speeds[1][idx] = tmpC1 + omega * (d_equ1- tmpC1);
+        tmp_cells->speeds[2][idx] = tmpC2 + omega * (d_equ2 - tmpC2);
+        tmp_cells->speeds[3][idx] = tmpC3 + omega * (d_equ3 - tmpC3);
+        tmp_cells->speeds[4][idx] = tmpC4 + omega * (d_equ4 - tmpC4);
+        tmp_cells->speeds[5][idx] = tmpC5 + omega * (d_equ5 - tmpC5);
+        tmp_cells->speeds[6][idx] = tmpC6 + omega * (d_equ6 - tmpC6);
+        tmp_cells->speeds[7][idx] = tmpC7 + omega * (d_equ7 - tmpC7);
+        tmp_cells->speeds[8][idx] = tmpC8 + omega * (d_equ8 - tmpC8);
 
         tot_u += native_sqrt((u_x * u_x) + (u_y * u_y));
         /* increase counter of inspected cells */
