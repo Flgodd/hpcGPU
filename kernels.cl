@@ -55,7 +55,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
     int jj = get_global_id(1);
     int idx = ii + jj * nx;
 
-
+    printf("here1");
     float tot_u = 0;
     int y_n = (jj + 1) % ny;
     int x_e = (ii + 1) % nx;
@@ -78,7 +78,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
     /* don't consider occupied cells */
     if (obstacles[idx])
     {
-
+        printf("here2");
         /* called after propagate, so taking values from scratch space
         ** mirroring, and writing into main grid */
         tmp_cells->speeds[1][idx] = tmpC3;
@@ -89,6 +89,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
         tmp_cells->speeds[6][idx] = tmpC8;
         tmp_cells->speeds[7][idx] = tmpC5;
         tmp_cells->speeds[8][idx] = tmpC6;
+        printf("here3");
     }
     if (!obstacles[idx]){
 
@@ -174,6 +175,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
         /* increase counter of inspected cells */
         //++*tot_cells;
     }
+    printf("here4");
 
     int ii_l = get_local_id(0);
     int jj_l = get_local_id(1);
