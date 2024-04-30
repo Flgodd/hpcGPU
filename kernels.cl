@@ -177,6 +177,7 @@ kernel void combineReCol(global t_speed* cells, global t_speed* tmp_cells, globa
     }
     printf("here4");
 
+
     int ii_l = get_local_id(0);
     int jj_l = get_local_id(1);
 
