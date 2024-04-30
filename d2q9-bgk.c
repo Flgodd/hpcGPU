@@ -114,7 +114,7 @@ typedef struct
 /*
 ** function prototypes
 */
-
+int check = 0;
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
@@ -239,10 +239,10 @@ int main(int argc, char* argv[])
     {
         timestep(params, ocl, tt);
 
-
-        cl_mem temp = ocl.cells;
+        check = !check;
+        /*cl_mem temp = ocl.cells;
         ocl.cells = ocl.tmp_cells;
-        ocl.tmp_cells = temp;
+        ocl.tmp_cells = temp;*/
         //err = clFinish(ocl.queue);
 #ifdef DEBUG
         printf("==timestep: %d==\n", tt);
@@ -319,10 +319,13 @@ int timestep(const t_param params, t_ocl ocl, int tt)
 int accelerate_flow(const t_param params, t_ocl ocl)
 {
     cl_int err;
-
-    err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
-    checkError(err, "setting accelerate_flow arg 0", __LINE__);
-
+    if(check == 0) {
+        err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
+        checkError(err, "setting accelerate_flow arg 0", __LINE__);
+    }else{
+        err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.tmp_cells);
+        checkError(err, "setting accelerate_flow arg 0", __LINE__);
+    }
 
     // Enqueue kernel
     size_t global[1] = {params.nx};
@@ -341,9 +344,9 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     cl_int err;
 
     // Set kernel arguments
-    err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
+    err = clSetKernelArg(ocl.combineReCol, check, sizeof(cl_mem), &ocl.cells);
     checkError(err, "setting collision arg 0", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
+    err = clSetKernelArg(ocl.combineReCol, !check, sizeof(cl_mem), &ocl.tmp_cells);
     checkError(err, "setting collision arg 1", __LINE__);
     err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
     checkError(err, "setting collision arg 7", __LINE__);
