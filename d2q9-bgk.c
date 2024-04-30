@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 #else
     clock_t start = clock();
 #endif
-
+    clock_t b = clock();
     for (int tt = 0; tt < params.maxIters; tt++)
     {
         timestep(params, ocl, tt);
@@ -250,7 +250,9 @@ int main(int argc, char* argv[])
 		printf("tot density: %.12E\n", total_density(params, cells));
 #endif
     }
-
+    clock_t e = clock();
+    float t = (float)(e - start) / CLOCKS_PER_SEC;
+    printf("time: %f\n", t);
 #ifdef  __unix__
     gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
