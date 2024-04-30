@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 #endif
     }
     clock_t e = clock();
-    float t = (float)(e - start) / CLOCKS_PER_SEC;
+    float t = (float)(e - b) / CLOCKS_PER_SEC;
     printf("time: %f\n", t);
 #ifdef  __unix__
     gettimeofday(&timstr, NULL);
