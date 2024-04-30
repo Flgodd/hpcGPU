@@ -18,7 +18,7 @@ echo `echo $SLURM_JOB_NODELIST | uniq`
 echo GPU number: $CUDA_VISIBLE_DEVICES
 
 export OCL_DEVICE=1
-
+export LD_LIBRARY_PATH=/usr/lib64/psm2-compat/libpsm_infinipath.so.1:$LD_LIBRARY_PATH
 module load libs/cuda/10.0-gcc-5.4.0-2.26
 #module use /software/x86/tools/nvidia/hpc_sdk/modulefiles
 #module load NVIDIA/nvhpc/21.9
