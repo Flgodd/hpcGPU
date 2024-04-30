@@ -114,7 +114,6 @@ typedef struct
 /*
 ** function prototypes
 */
-int check = 0;
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
@@ -143,7 +142,7 @@ float total_density(const t_param params, t_speed* cells);
 float av_velocity(const t_param params, t_speed* cells, int* obstacles);
 
 /* calculate Reynolds number */
-float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float vel);
+float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
 /* utility functions */
 void checkError(cl_int err, const char *op, const int line);
@@ -239,10 +238,9 @@ int main(int argc, char* argv[])
     {
         timestep(params, ocl, tt);
 
-        check = !check;
-        /*cl_mem temp = ocl.cells;
+        cl_mem temp = ocl.cells;
         ocl.cells = ocl.tmp_cells;
-        ocl.tmp_cells = temp;*/
+        ocl.tmp_cells = temp;
         //err = clFinish(ocl.queue);
 #ifdef DEBUG
         printf("==timestep: %d==\n", tt);
@@ -286,11 +284,11 @@ int main(int argc, char* argv[])
     }
 
     free(tt_vels);
-    av_velocity(params, cells, obstacles);
+    //av_velocity(params, cells, obstacles);
 
     checkError(err, "reading tmp_cells data", __LINE__);
     printf("==done==\n");
-    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles, ocl, av_vels[params.maxIters-1]));
+    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles, ocl));
 #ifdef __unix__
     printf("Elapsed time:\t\t\t%.6f (s)\n", time);
   printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
@@ -319,13 +317,9 @@ int timestep(const t_param params, t_ocl ocl, int tt)
 int accelerate_flow(const t_param params, t_ocl ocl)
 {
     cl_int err;
-    if(check == 0) {
-        err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
-        checkError(err, "setting accelerate_flow arg 0", __LINE__);
-    }else{
-        err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.tmp_cells);
-        checkError(err, "setting accelerate_flow arg 0", __LINE__);
-    }
+
+    err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
+    checkError(err, "setting accelerate_flow arg 0", __LINE__);
 
     // Enqueue kernel
     size_t global[1] = {params.nx};
@@ -344,9 +338,9 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     cl_int err;
 
     // Set kernel arguments
-    err = clSetKernelArg(ocl.combineReCol, check, sizeof(cl_mem), &ocl.cells);
+    err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
     checkError(err, "setting collision arg 0", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, !check, sizeof(cl_mem), &ocl.tmp_cells);
+    err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
     checkError(err, "setting collision arg 1", __LINE__);
     err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
     checkError(err, "setting collision arg 7", __LINE__);
@@ -704,7 +698,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 }
 
 
-float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float vel)
+float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
 {
     const float viscosity = 1.f / 6.f * (2.f / params.omega - 1.f);
     return  av_velocity(params, cells, obstacles)* params.reynolds_dim / viscosity;
