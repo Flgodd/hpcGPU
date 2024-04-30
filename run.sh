@@ -7,6 +7,7 @@
 #SBATCH --output=lbm.out
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
 
 
 echo Running on host `hostname`
