@@ -20,8 +20,8 @@ echo GPU number: $CUDA_VISIBLE_DEVICES
 export OCL_DEVICE=1
 
 module load libs/cuda/10.0-gcc-5.4.0-2.26
-module use /software/x86/tools/nvidia/hpc_sdk/modulefiles
-module load NVIDIA/nvhpc/21.9
+#module use /software/x86/tools/nvidia/hpc_sdk/modulefiles
+#module load NVIDIA/nvhpc/21.9
 
 #! Run the executable
 #./d2q9-bgk input_128x128.params obstacles_128x128.dat
