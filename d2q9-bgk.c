@@ -703,8 +703,8 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, float vel)
 {
-    const float viscosity = 1.0 / 6.0 * (2.0 / params.omega - 1.0);
-    return  vel* params.reynolds_dim / viscosity;
+    const float viscosity = 1.f / 6.f * (2.f / params.omega - 1.f);
+    return  av_velocity(params, cells, obstacles)* params.reynolds_dim / viscosity;
 }
 
 float total_density(const t_param params, t_speed* cells)
