@@ -29,4 +29,4 @@ export LD_LIBRARY_PATH=/usr/lib64/psm2-compat:$LD_LIBRARY_PATH
 #./d2q9-bgk input_1024x1024.params obstacles_1024x1024.dat
 #ncu --target-processes all -o my_profile_report ./d2q9-bgk input_2048x2048.params obstacles_2048x2048.dat
 cd /user/home/tn21145/osu-micro-benchmarks-7.4/c/mpi/pt2pt/standard/
-srun --mpi=pmi2 -N 1 --ntasks-per-node=1 ./osu_bw
+srun --mpi=pmi2 -N 1 --ntasks-per-node=2 ./osu_bw
