@@ -217,26 +217,26 @@ int main(int argc, char* argv[])
     checkError(err, "writing obstacles data", __LINE__);
 
 
-    err = clSetKernelArg(ocl.combineReCol, 9, sizeof(cl_mem), &ocl.obstacles);
+    err = clSetKernelArg(ocl.combineReCol, 18, sizeof(cl_mem), &ocl.obstacles);
     checkError(err, "setting collision arg 2", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 10, sizeof(cl_int), &params.nx);
+    err = clSetKernelArg(ocl.combineReCol, 19, sizeof(cl_int), &params.nx);
     checkError(err, "setting collision arg 3", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 11, sizeof(cl_int), &params.ny);
+    err = clSetKernelArg(ocl.combineReCol, 20, sizeof(cl_int), &params.ny);
     checkError(err, "setting collision arg 4", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 12, sizeof(cl_float), &params.omega);
+    err = clSetKernelArg(ocl.combineReCol, 21, sizeof(cl_float), &params.omega);
     checkError(err, "setting collision arg 5", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 13, sizeof(cl_mem), &ocl.total_vel);
+    err = clSetKernelArg(ocl.combineReCol, 22, sizeof(cl_mem), &ocl.total_vel);
     checkError(err, "setting collision arg 6", __LINE__);
 
-    err = clSetKernelArg(ocl.accelerate_flow, 18, sizeof(cl_mem), &ocl.obstacles);
+    err = clSetKernelArg(ocl.accelerate_flow, 9, sizeof(cl_mem), &ocl.obstacles);
     checkError(err, "setting accelerate_flow arg 1", __LINE__);
-    err = clSetKernelArg(ocl.accelerate_flow, 19, sizeof(cl_int), &params.nx);
+    err = clSetKernelArg(ocl.accelerate_flow, 10, sizeof(cl_int), &params.nx);
     checkError(err, "setting accelerate_flow arg 2", __LINE__);
-    err = clSetKernelArg(ocl.accelerate_flow, 20, sizeof(cl_int), &params.ny);
+    err = clSetKernelArg(ocl.accelerate_flow, 11, sizeof(cl_int), &params.ny);
     checkError(err, "setting accelerate_flow arg 3", __LINE__);
-    err = clSetKernelArg(ocl.accelerate_flow, 21, sizeof(cl_float), &params.density);
+    err = clSetKernelArg(ocl.accelerate_flow, 12, sizeof(cl_float), &params.density);
     checkError(err, "setting accelerate_flow arg 4", __LINE__);
-    err = clSetKernelArg(ocl.accelerate_flow, 22, sizeof(cl_float), &params.accel);
+    err = clSetKernelArg(ocl.accelerate_flow, 13, sizeof(cl_float), &params.accel);
     checkError(err, "setting accelerate_flow arg 5", __LINE__);
 
     /* iterate for maxIters timesteps */
