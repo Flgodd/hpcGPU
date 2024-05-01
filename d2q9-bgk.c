@@ -394,7 +394,7 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     clSetKernelArg(ocl.combineReCol, 15, sizeof(cl_mem), &ocl.tspeeds[6]);
     clSetKernelArg(ocl.combineReCol, 16, sizeof(cl_mem), &ocl.tspeeds[7]);
     clSetKernelArg(ocl.combineReCol, 17, sizeof(cl_mem), &ocl.tspeeds[8]);
-    err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
+    err = clSetKernelArg(ocl.combineReCol, 23, sizeof(cl_int), &tt);
     checkError(err, "setting collision arg 7", __LINE__);
     // Enqueue kernel
     size_t global[2] = { params.nx, params.ny };
