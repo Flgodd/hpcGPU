@@ -103,6 +103,8 @@ typedef struct
     cl_mem tmp_cells;
     cl_mem obstacles;
     cl_mem total_vel;
+    cl_mem cspeeds[NSPEEDS];
+    cl_mem tspeeds[NSPEEDS];
     int workGroups;
     size_t workGroupSize;
 
@@ -193,10 +195,20 @@ int main(int argc, char* argv[])
     initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl, &gl_obs_u, &tt_vels);
 
     // Write cells to OpenCL buffer
-    err = clEnqueueWriteBuffer(
-            ocl.queue, ocl.cells, CL_FALSE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
-    checkError(err, "writing cells data", __LINE__);
+    for (int i = 0; i < NSPEEDS; i++) {
+        err = clEnqueueWriteBuffer(
+                ocl.queue,
+                ocl.cspeeds[i],
+                CL_FALSE,
+                0,
+                sizeof(float) * params.nx * params.ny,
+                cells->speeds[i],
+                0,
+                NULL,
+                NULL
+        );
+        checkError(err, "writing cells data", __LINE__);
+    }
 
     // Write obstacles to OpenCL buffer00
     err = clEnqueueWriteBuffer(
@@ -239,9 +251,19 @@ int main(int argc, char* argv[])
     {
         timestep(params, ocl, tt);
 
-        cl_mem temp = ocl.cells;
-        ocl.cells = ocl.tmp_cells;
-        ocl.tmp_cells = temp;
+        cl_mem temp[NSPEEDS];
+
+        for (int i = 0; i < NSPEEDS; i++) {
+            temp[i] = ocl.cspeeds[i];
+        }
+
+        for (int i = 0; i < NSPEEDS; i++) {
+            ocl.cspeeds[i] = ocl.tspeeds[i];
+        }
+
+        for (int i = 0; i < NSPEEDS; i++) {
+            ocl.tspeeds[i] = temp[i];
+        }
         //err = clFinish(ocl.queue);
 #ifdef DEBUG
         printf("==timestep: %d==\n", tt);
@@ -319,8 +341,18 @@ int accelerate_flow(const t_param params, t_ocl ocl)
 {
     cl_int err;
 
-    err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
-    checkError(err, "setting accelerate_flow arg 0", __LINE__);
+//    err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
+//    checkError(err, "setting accelerate_flow arg 0", __LINE__);
+    clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cspeeds[0]);
+    clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.cspeeds[1]);
+    clSetKernelArg(ocl.accelerate_flow, 2, sizeof(cl_mem), &ocl.cspeeds[2]);
+    clSetKernelArg(ocl.accelerate_flow, 3, sizeof(cl_mem), &ocl.cspeeds[3]);
+    clSetKernelArg(ocl.accelerate_flow, 4, sizeof(cl_mem), &ocl.cspeeds[4]);
+    clSetKernelArg(ocl.accelerate_flow, 5, sizeof(cl_mem), &ocl.cspeeds[5]);
+    clSetKernelArg(ocl.accelerate_flow, 6, sizeof(cl_mem), &ocl.cspeeds[6]);
+    clSetKernelArg(ocl.accelerate_flow, 7, sizeof(cl_mem), &ocl.cspeeds[7]);
+    clSetKernelArg(ocl.accelerate_flow, 8, sizeof(cl_mem), &ocl.cspeeds[8]);
+
 
     // Enqueue kernel
     size_t global[1] = {params.nx};
@@ -339,10 +371,29 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
     cl_int err;
 
     // Set kernel arguments
-    err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
-    checkError(err, "setting collision arg 0", __LINE__);
-    err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
-    checkError(err, "setting collision arg 1", __LINE__);
+//    err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
+//    checkError(err, "setting collision arg 0", __LINE__);
+//    err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
+//    checkError(err, "setting collision arg 1", __LINE__);
+    clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cspeeds[0]);
+    clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.cspeeds[1]);
+    clSetKernelArg(ocl.combineReCol, 2, sizeof(cl_mem), &ocl.cspeeds[2]);
+    clSetKernelArg(ocl.combineReCol, 3, sizeof(cl_mem), &ocl.cspeeds[3]);
+    clSetKernelArg(ocl.combineReCol, 4, sizeof(cl_mem), &ocl.cspeeds[4]);
+    clSetKernelArg(ocl.combineReCol, 5, sizeof(cl_mem), &ocl.cspeeds[5]);
+    clSetKernelArg(ocl.combineReCol, 6, sizeof(cl_mem), &ocl.cspeeds[6]);
+    clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_mem), &ocl.cspeeds[7]);
+    clSetKernelArg(ocl.combineReCol, 8, sizeof(cl_mem), &ocl.cspeeds[8]);
+
+    clSetKernelArg(ocl.combineReCol, 9, sizeof(cl_mem), &ocl.tspeeds[0]);
+    clSetKernelArg(ocl.combineReCol, 10, sizeof(cl_mem), &ocl.tspeeds[1]);
+    clSetKernelArg(ocl.combineReCol, 11, sizeof(cl_mem), &ocl.tspeeds[2]);
+    clSetKernelArg(ocl.combineReCol, 12, sizeof(cl_mem), &ocl.tspeeds[3]);
+    clSetKernelArg(ocl.combineReCol, 13, sizeof(cl_mem), &ocl.tspeeds[4]);
+    clSetKernelArg(ocl.combineReCol, 14, sizeof(cl_mem), &ocl.tspeeds[5]);
+    clSetKernelArg(ocl.combineReCol, 15, sizeof(cl_mem), &ocl.tspeeds[6]);
+    clSetKernelArg(ocl.combineReCol, 16, sizeof(cl_mem), &ocl.tspeeds[7]);
+    clSetKernelArg(ocl.combineReCol, 17, sizeof(cl_mem), &ocl.tspeeds[8]);
     err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
     checkError(err, "setting collision arg 7", __LINE__);
     // Enqueue kernel
@@ -671,7 +722,26 @@ int initialise(const char* paramfile, const char* obstaclefile,
             ocl->context, CL_MEM_READ_ONLY,
             sizeof(int) * params->nx * params->ny, NULL, &err);
     checkError(err, "creating tmp_cells buffer", __LINE__);
-
+    for (int i = 0; i < NSPEEDS; i++) {
+        ocl->cspeeds[i] = clCreateBuffer(
+                ocl->context,
+                CL_MEM_READ_WRITE,
+                sizeof(float) * params->ny * params->nx,
+                NULL,
+                &err
+        );
+        checkError(err, "creating speeds buffer", __LINE__);
+    }
+    for (int i = 0; i < NSPEEDS; i++) {
+        ocl->tspeeds[i] = clCreateBuffer(
+                ocl->context,
+                CL_MEM_READ_WRITE,
+                sizeof(float) * params->ny * params->nx,
+                NULL,
+                &err
+        );
+        checkError(err, "creating speeds buffer", __LINE__);
+    }
 
     ocl->workGroupSize = 16*16;
     ocl->workGroups = (params->nx*params->ny) / ocl->workGroupSize;
