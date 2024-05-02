@@ -321,7 +321,6 @@ int accelerate_flow(const t_param params, t_ocl ocl)
     err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.cells);
     checkError(err, "setting accelerate_flow arg 0", __LINE__);
 
-    // Enqueue kernel
     size_t global[1] = {params.nx};
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.accelerate_flow,
                                  1, NULL, global, NULL, 0, NULL, NULL);
@@ -337,14 +336,13 @@ int combineReCol(const t_param params, t_ocl ocl , int tt)
 {
     cl_int err;
 
-    // Set kernel arguments
     err = clSetKernelArg(ocl.combineReCol, 0, sizeof(cl_mem), &ocl.cells);
     checkError(err, "setting collision arg 0", __LINE__);
     err = clSetKernelArg(ocl.combineReCol, 1, sizeof(cl_mem), &ocl.tmp_cells);
     checkError(err, "setting collision arg 1", __LINE__);
     err = clSetKernelArg(ocl.combineReCol, 7, sizeof(cl_int), &tt);
     checkError(err, "setting collision arg 7", __LINE__);
-    // Enqueue kernel
+
     size_t global[2] = { params.nx, params.ny };
     size_t local[2] = { 16, 16};
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.combineReCol,
@@ -653,9 +651,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     ocl->workGroupSize = 16*16;
     ocl->workGroups = (params->nx*params->ny) / ocl->workGroupSize;
-
-    printf("workgroup size: %d \n", (int)ocl->workGroupSize);
-    printf("workgroup count: %d \n", (int)(ocl->workGroups));
 
     ocl->total_vel = clCreateBuffer(
             ocl->context, CL_MEM_READ_WRITE,
