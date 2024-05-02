@@ -96,8 +96,6 @@ typedef struct
     cl_kernel  combineReCol;
     cl_kernel  rebound;
     cl_kernel  av_velocity;
-
-
     cl_mem cells;
     cl_mem tmp_cells;
     cl_mem obstacles;
