@@ -421,39 +421,39 @@ int main(int argc, char* argv[])
     /* write final values and free memory */
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds0, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[0], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[0], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds1, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[1], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[1], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds2, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[2], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[2], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds3, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[3], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[3], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds4, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[4], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[4], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds5, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[5], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[5], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds6, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[6], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[6], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds7, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[7], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[7], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
     err = clEnqueueReadBuffer(
             ocl.queue, ocl.cspeeds8, CL_TRUE, 0,
-            sizeof(t_speed) * params.nx * params.ny, cells->speeds[8], 0, NULL, NULL);
+            sizeof(float) * params.nx * params.ny, cells->speeds[8], 0, NULL, NULL);
     checkError(err, "reading cells data", __LINE__);
 
     err = clEnqueueReadBuffer(
